@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "math-edu",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "uvicorn", "math_edu.app:app", "--port", "8300"],
+      "port": 8300
+    }
+  ]
+}

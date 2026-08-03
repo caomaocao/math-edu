@@ -1,0 +1,29 @@
+# 书页扫描件：有版权，不进库（只锁根目录，别误伤 src/data 这种同名子目录）
+/data/
+
+# 密钥
+.env
+!.env.example
+
+# 运行时产物
+/var/
+.DS_Store
+
+# 文生图原始产物：2048px 白底大图，几十 MB 且随时可用 tools/生成实体图.py 重生成；
+# 只有抠好缩好的 web/shared/assets/实体图/ 成品才入库。
+# 按批次一个目录，批次名见 生成实体图.py 的 任务单——除了票子，这底下全是原图。
+/.scratch/entity-art/*
+!/.scratch/entity-art/issues/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# Node
+node_modules/
+
+# 编辑器
+.vscode/
+.idea/

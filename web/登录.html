@@ -1,0 +1,576 @@
+<!doctype html>
+<!--
+  登录注册合一页（ticket 03）。成人页：中文说明文字可有、竖屏可读、不挂转屏拦罩，
+  孩子界面铁律不适用。照 /guide 的「渲染文件而非字符串模板」套路 —— 本文件自包含、
+  内联样式与脚本，服务端只把下面 <body data-captcha-id> 里的 <!--CAPTCHA_APP_ID-->
+  换成真实 app_id（见 app.py 的 /login 路由）。app_id 用全小写 ASCII 属性名承接，避开
+  HTML 属性名大小写归一化 + dataset 驼峰规则对非 ASCII 名的坑（同 auth_form.js）。
+  本页只在 AUTH_MODE=on 的公网存在，所以图形验证 ct4.js 从阿里云官方 CDN 加载，
+  不违反课程页「无 CDN、可离线」红线。
+
+  交互流程照 wechat_screen_detect 的 auth_form.js 移植：
+    图形验证通过 → 亮「发送验证码」→ 发码（倒计时防连点）→ 填码 + 邀请码 → 提交。
+  每个失败分支的中文提示由后端错误码映射而来（见脚本里的「话术」表）。
+
+  样式表完好红线：本页在 web/ 顶层，已被 样式表完好.test.js 的 web/*.html glob 自动
+  纳入（那份测试注释：「新添一页自动进覆盖，不用回来改这里」）—— 结构收口，无需改测试。
+-->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>登录 · 大班数学</title>
+  <style>
+    /* 成人登录页。视觉借用站级使用指南那套素净配色（墨/淡墨/纸/线/蓝），
+       让家长一眼认得是同一个网站，但更收敛 —— 登录页要的是「可信、不花哨」。
+       浅色为主，跟随系统深色（color-scheme + 一个 prefers-color-scheme 覆盖）。 */
+    :root {
+      color-scheme: light dark;
+      --墨: #1f2b38;
+      --淡墨: #61707f;
+      --纸: #ffffff;
+      --底: #eef1f5;
+      --线: #d3dae2;
+      --蓝: #2f6f9f;
+      --蓝深: #245c85;
+      --蓝浅: #eaf2f9;
+      --绿: #2e7d55;
+      --绿浅: #e7f4ec;
+      --红: #b4402f;
+      --红浅: #fbecea;
+      --阴: rgba(31, 43, 56, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--底);
+      color: var(--墨);
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      /* 竖转横时 WebKit 会自动加大整段字，说明层级会乱；关掉。 */
+      -webkit-text-size-adjust: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    .卡 {
+      width: 100%;
+      max-width: 380px;
+      background: var(--纸);
+      border-radius: 18px;
+      box-shadow: 0 10px 40px var(--阴);
+      padding: 28px 26px 22px;
+    }
+
+    .眉 {
+      margin: 0;
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      color: var(--淡墨);
+    }
+
+    h1 {
+      margin: 4px 0 8px;
+      font-size: 26px;
+      letter-spacing: 0.02em;
+    }
+
+    .说明 {
+      margin: 0 0 20px;
+      font-size: 14px;
+      color: var(--淡墨);
+    }
+
+    .字段 { display: block; margin-bottom: 16px; }
+
+    .标签 {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .注解 {
+      display: block;
+      font-size: 12.5px;
+      color: var(--淡墨);
+      margin-top: 5px;
+    }
+
+    input[type="tel"],
+    input[type="text"] {
+      width: 100%;
+      height: 46px;
+      padding: 0 12px;
+      font-size: 16px; /* ≥16px：iOS 聚焦时不缩放整页 */
+      font-family: inherit;
+      color: var(--墨);
+      background: var(--纸);
+      border: 1.5px solid var(--线);
+      border-radius: 10px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input[type="tel"] { letter-spacing: 0.06em; }
+    input:focus { border-color: var(--蓝); }
+
+    /* 图形验证：触发钮 + 状态字 一行 */
+    .验证行 {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    #验证钮 {
+      flex: 1 1 auto;
+      min-height: 46px;
+      padding: 0 14px;
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--蓝);
+      background: var(--蓝浅);
+      border: 1.5px solid var(--蓝);
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    #验证钮.已过 {
+      color: var(--绿);
+      background: var(--绿浅);
+      border-color: var(--绿);
+    }
+    #验证钮:disabled { cursor: default; opacity: 0.9; }
+
+    .验证态 {
+      font-size: 13.5px;
+      color: var(--淡墨);
+      white-space: nowrap;
+    }
+    .验证态.已过 { color: var(--绿); font-weight: 600; }
+    .验证态.失败 { color: var(--红); font-weight: 600; }
+
+    /* 短信码 + 发送钮 一行 */
+    .短信行 { display: flex; gap: 10px; }
+    .短信行 input { flex: 1 1 auto; min-width: 0; }
+    #发送钮 {
+      flex: 0 0 auto;
+      min-width: 108px;
+      height: 46px;
+      padding: 0 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--蓝);
+      background: var(--纸);
+      border: 1.5px solid var(--蓝);
+      border-radius: 10px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    #发送钮:disabled {
+      color: var(--淡墨);
+      border-color: var(--线);
+      background: var(--底);
+      cursor: default;
+    }
+
+    /* 提示区：一行人话，aria-live 通报 */
+    .提示 {
+      margin: 4px 0 16px;
+      padding: 10px 12px;
+      font-size: 14px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+    }
+    .提示[hidden] { display: none; }
+    .提示-错 { color: var(--红); background: var(--红浅); border-color: #eecac3; }
+    .提示-好 { color: var(--绿); background: var(--绿浅); border-color: #c6e4d3; }
+    .提示-平 { color: var(--淡墨); background: var(--底); border-color: var(--线); }
+
+    /* 主提交钮 */
+    .主钮 {
+      width: 100%;
+      height: 50px;
+      font-size: 17px;
+      font-weight: 600;
+      font-family: inherit;
+      color: #fff;
+      background: var(--蓝);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .主钮:disabled { background: #9db6c8; cursor: default; }
+
+    /* 悬停只在真有悬停的设备上生效，避免手指点过后按钮粘在「按下」态 */
+    @media (hover: hover) {
+      #验证钮:hover:not(:disabled) { background: #dcebf6; }
+      #发送钮:hover:not(:disabled) { background: var(--蓝浅); }
+      .主钮:hover:not(:disabled) { background: var(--蓝深); }
+      .登出:hover { color: var(--淡墨); text-decoration: underline; }
+    }
+
+    /* 页脚：一行不起眼的成人操作（登出）。故意小 —— 防误触是特性不是 bug。 */
+    .页脚 {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid var(--线);
+      text-align: center;
+    }
+    .登出 {
+      font-size: 12.5px;
+      color: #9aa7b3;
+      background: none;
+      border: none;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    /* 系统深色：把纸面压暗，字提亮，配色仍是同一套语义 */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --墨: #e7edf3;
+        --淡墨: #9aa7b3;
+        --纸: #1c2530;
+        --底: #121820;
+        --线: #33424f;
+        --蓝: #6fa8d0;
+        --蓝深: #86bbe0;
+        --蓝浅: #22303c;
+        --绿: #7fc9a0;
+        --绿浅: #1e2f28;
+        --红: #e39184;
+        --红浅: #33232120;
+        --阴: rgba(0, 0, 0, 0.5);
+      }
+      .主钮 { color: #10171f; }
+      .主钮:disabled { background: #3a4a58; color: #8797a5; }
+      .提示-错 { border-color: #4a2f2b; }
+      .提示-好 { border-color: #294034; }
+    }
+  </style>
+</head>
+<body data-captcha-id="<!--CAPTCHA_APP_ID-->">
+  <main class="卡">
+    <p class="眉">大班数学</p>
+    <h1>登录</h1>
+    <p class="说明">用手机号收一条短信验证码就能登录。孩子的星星和图鉴会跟着账号走，换设备接着玩。</p>
+
+    <form id="登录表单" autocomplete="off" novalidate>
+      <label class="字段">
+        <span class="标签">手机号</span>
+        <input id="手机号" type="tel" inputmode="numeric" maxlength="11"
+               autocomplete="tel" placeholder="11 位手机号" />
+      </label>
+
+      <div class="字段">
+        <span class="标签">图形验证</span>
+        <div class="验证行">
+          <button type="button" id="验证钮">点这里完成图形验证</button>
+          <span id="验证态" class="验证态">未验证</span>
+        </div>
+      </div>
+
+      <label class="字段">
+        <span class="标签">短信验证码</span>
+        <div class="短信行">
+          <input id="短信码" type="text" inputmode="numeric" maxlength="6"
+                 autocomplete="one-time-code" placeholder="短信里的数字" />
+          <button type="button" id="发送钮" disabled>发送验证码</button>
+        </div>
+      </label>
+
+      <label class="字段">
+        <span class="标签">邀请码</span>
+        <input id="邀请码" type="text" autocomplete="off" placeholder="首次使用填这里" />
+        <span class="注解">首次使用需要，老用户留空。</span>
+      </label>
+
+      <p id="提示" class="提示" role="status" aria-live="polite" hidden></p>
+
+      <button type="submit" id="提交钮" class="主钮">登录 / 注册</button>
+    </form>
+
+    <div class="页脚">
+      <button type="button" id="登出" class="登出">退出当前登录</button>
+    </div>
+  </main>
+
+  <!-- 阿里云图形验证码 v4（initAlicom4）。同步加载，脚本运行时 window.initAlicom4 已就绪。 -->
+  <script src="https://static.alicaptcha.com/v4/ct4.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      var 手机正则 = /^1[3-9]\d{9}$/;
+      var 验证ID = (document.body.dataset.captchaId || "").trim();
+
+      var $ = function (id) { return document.getElementById(id); };
+      var 手机号 = $("手机号");
+      var 短信码 = $("短信码");
+      var 邀请码 = $("邀请码");
+      var 验证钮 = $("验证钮");
+      var 验证态 = $("验证态");
+      var 发送钮 = $("发送钮");
+      var 提交钮 = $("提交钮");
+      var 表单 = $("登录表单");
+      var 提示 = $("提示");
+      var 登出钮 = $("登出");
+
+      var 已过验证 = false;   // 图形验证是否通过（发短信的前置门）
+      var 倒计时器 = null;    // 发送钮防连点倒计时
+
+      // ---- 提示与错误 ----------------------------------------------------
+      function 说话(文本, 类型) {
+        提示.textContent = 文本 || "";
+        提示.hidden = !文本;
+        提示.className = "提示" + (类型 ? " 提示-" + 类型 : "");
+      }
+
+      // 后端错误体形状固定为 {"detail":{"error":<code>,"message":<中文>,...}}。
+      function 读错误(体) {
+        var d = (体 && 体.detail);
+        if (typeof d === "string") return { code: "", message: d };
+        d = d || {};
+        return { code: d.error || "", message: d.message || "", retry: d.retry_after_seconds };
+      }
+
+      function 时长(秒) {
+        秒 = Number(秒) || 0;
+        if (秒 < 60) return 秒 + " 秒";
+        if (秒 < 3600) return Math.ceil(秒 / 60) + " 分钟";
+        return Math.ceil(秒 / 3600) + " 小时";
+      }
+
+      // 每个失败分支对应的人话。后端已给中文 message，这里针对票里点名的分支重写得更可操作，
+      // 未列到的分支回退后端 message。
+      var 话术 = {
+        captcha_failed: function () { return "图形验证没通过，请再点一次「图形验证」重试。"; },
+        invalid_phone: function () { return "手机号填得不对，请检查这 11 位数字。"; },
+        captcha_required: function () { return "请先完成上方的图形验证。"; },
+        not_eligible: function () { return "这个手机号还不能收验证码。首次使用请在下方填写邀请码后再发送。"; },
+        sms_rate_limit_exceeded: function (e) { return "验证码发得太勤了，请 " + 时长(e.retry) + "后再试。"; },
+        sms_send_failed: function () { return "短信没发出去，请过一会儿再试一次。"; },
+        missing_code: function () { return "请填写收到的短信验证码。"; },
+        sms_target_mismatch: function () { return "手机号和刚才发送验证码的号码不一致，请重新发送验证码。"; },
+        sms_code_invalid: function () { return "验证码不对或已过期，请重新填写，或重新发送一条。"; },
+        invite_required: function () { return "新用户需要有效邀请码才能注册，请检查邀请码是否填对。"; }
+      };
+
+      function 人话(err) {
+        var f = 话术[err.code];
+        if (f) return f(err);
+        return err.message || "出错了，请稍后再试。";
+      }
+
+      function 取JSON(r) {
+        return r.json().then(function (x) { return x; }, function () { return {}; });
+      }
+
+      // ---- 图形验证态 ----------------------------------------------------
+      function 置验证态(文本, ok) {
+        验证态.textContent = 文本;
+        验证态.className = "验证态" + (ok === true ? " 已过" : ok === false ? " 失败" : "");
+      }
+
+      function 标记已过() {
+        已过验证 = true;
+        置验证态("✓ 已通过", true);
+        验证钮.disabled = true;
+        验证钮.classList.add("已过");
+        if (!倒计时器) 发送钮.disabled = false;
+      }
+
+      // 短信预算耗尽（后端要求重过验证码）时把验证态清回起点，让家长重新点验证钮。
+      function 重置验证() {
+        已过验证 = false;
+        置验证态("未验证", null);
+        验证钮.disabled = false;
+        验证钮.classList.remove("已过");
+        验证钮.textContent = "点这里完成图形验证";
+        发送钮.disabled = true;
+      }
+
+      // ---- ct4.js 初始化 -------------------------------------------------
+      function 初始化验证() {
+        if (typeof window.initAlicom4 !== "function") {
+          置验证态("验证码加载失败，请刷新页面", false);
+          验证钮.disabled = true;
+          return;
+        }
+        if (!验证ID) {
+          置验证态("验证码未配置", false);
+          验证钮.disabled = true;
+          return;
+        }
+        window.initAlicom4({ captchaId: 验证ID, product: "bind" }, function (captchaObj) {
+          captchaObj
+            .onSuccess(function () {
+              var validate = captchaObj.getValidate();
+              if (!validate) return;
+              置验证态("正在校验…", null);
+              fetch("/api/auth/captcha", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
+                body: JSON.stringify({
+                  lot_number: validate.lot_number,
+                  captcha_output: validate.captcha_output,
+                  pass_token: validate.pass_token,
+                  gen_time: validate.gen_time
+                })
+              }).then(function (r) {
+                if (r.ok) {
+                  标记已过();
+                  说话("", null);
+                } else {
+                  return 取JSON(r).then(function (体) {
+                    置验证态("未通过，请重试", false);
+                    说话(人话(读错误(体)), "错");
+                    captchaObj.reset();
+                  });
+                }
+              }).catch(function () {
+                置验证态("网络错误，请重试", false);
+                说话("网络不太顺，请检查网络后重试。", "错");
+                captchaObj.reset();
+              });
+            })
+            .onError(function () {
+              置验证态("验证码出错，请重试", false);
+            });
+
+          验证钮.addEventListener("click", function () {
+            if (已过验证) return;
+            captchaObj.showCaptcha();
+          });
+        });
+      }
+
+      // ---- 发送短信 ------------------------------------------------------
+      发送钮.addEventListener("click", function () {
+        if (!已过验证) { 说话("请先完成图形验证。", "错"); return; }
+        var phone = 手机号.value.trim();
+        if (!手机正则.test(phone)) {
+          说话("手机号填得不对，请检查这 11 位数字。", "错");
+          手机号.focus();
+          return;
+        }
+        var 原文 = 发送钮.textContent;
+        发送钮.disabled = true;
+        发送钮.textContent = "发送中…";
+
+        var body = { phone: phone };
+        var 邀 = 邀请码.value.trim();
+        if (邀) body.invite_code = 邀;
+
+        fetch("/api/auth/sms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify(body)
+        }).then(function (r) {
+          if (r.ok) {
+            说话("验证码已发送，请查收短信。", "好");
+            开始倒计时(60);
+            短信码.focus();
+          } else {
+            return 取JSON(r).then(function (体) {
+              var err = 读错误(体);
+              说话(人话(err), "错");
+              发送钮.textContent = 原文;
+              // 预算耗尽 → 需重过验证码；否则仅解锁重试
+              if (err.code === "captcha_required") 重置验证();
+              else 发送钮.disabled = false;
+            });
+          }
+        }).catch(function () {
+          说话("网络不太顺，请检查网络后重试。", "错");
+          发送钮.textContent = 原文;
+          发送钮.disabled = false;
+        });
+      });
+
+      function 开始倒计时(秒) {
+        var 余 = 秒;
+        发送钮.disabled = true;
+        发送钮.textContent = "重发 " + 余 + "s";
+        倒计时器 = setInterval(function () {
+          余 -= 1;
+          if (余 <= 0) {
+            clearInterval(倒计时器);
+            倒计时器 = null;
+            发送钮.textContent = "重新发送";
+            发送钮.disabled = !已过验证;
+          } else {
+            发送钮.textContent = "重发 " + 余 + "s";
+          }
+        }, 1000);
+      }
+
+      // ---- 提交（登录 / 注册合一）---------------------------------------
+      表单.addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var phone = 手机号.value.trim();
+        var code = 短信码.value.trim();
+        if (!手机正则.test(phone)) {
+          说话("手机号填得不对，请检查这 11 位数字。", "错");
+          手机号.focus();
+          return;
+        }
+        if (!code) {
+          说话("请填写收到的短信验证码。", "错");
+          短信码.focus();
+          return;
+        }
+        var 原文 = 提交钮.textContent;
+        提交钮.disabled = true;
+        提交钮.textContent = "登录中…";
+
+        var body = { phone: phone, code: code };
+        var 邀 = 邀请码.value.trim();
+        if (邀) body.invite_code = 邀;
+
+        fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify(body)
+        }).then(function (r) {
+          if (r.ok) {
+            说话("登录成功，正在进入…", "好");
+            window.location.href = "/";
+            return;
+          }
+          return 取JSON(r).then(function (体) {
+            说话(人话(读错误(体)), "错");
+            提交钮.textContent = 原文;
+            提交钮.disabled = false;
+          });
+        }).catch(function () {
+          说话("网络不太顺，请检查网络后重试。", "错");
+          提交钮.textContent = 原文;
+          提交钮.disabled = false;
+        });
+      });
+
+      // ---- 登出（页脚不起眼的成人操作）----------------------------------
+      登出钮.addEventListener("click", function () {
+        fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" })
+          .then(function () { 说话("已退出登录。", "平"); })
+          .catch(function () { 说话("已退出登录。", "平"); });
+      });
+
+      // 脚本在 body 末尾，DOM 已就绪；ct4.js 同步加载，此刻 initAlicom4 亦已就绪。
+      初始化验证();
+    })();
+  </script>
+</body>
+</html>

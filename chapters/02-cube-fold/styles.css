@@ -1,0 +1,911 @@
+/* 干净现代风：大留白、鲜艳色块、圆角。不模仿教辅书的插画风。 */
+
+/* ===========================================================================
+   触靶下限是怎么算出来的 —— 改任何一个孩子要点的尺寸之前先读这一段
+   ===========================================================================
+
+   整讲画在基准舞台上：一套 1280 × 740 的恒定坐标系，整块 scale() 缩到屏幕
+   （docs/adr/0004，尺寸的正主是 src/main.js 里的 基准舞台尺寸）。
+   所以这份样式表里的每一个 px 都是**舞台像素**，不是屏幕上的像素。
+
+   740 这个高是量出来的，不是拍的。两头夹出来的：
+     下限一，导航裁不得    5 × 96 + 4 × 16 的缝 + 上下 18/78 内边距 = 640
+     下限二，贴水果那一屏  20 + 兔兔 38 + 14 + 贴纸板 411 + 14 + 水果盘 92 + 坞让位 116
+                           = 705（**全讲最高的一屏，740 就是它定的**）
+     上限，导航图标不放大  96px 得压得住触靶下限 → 96 ≥ 0.1229 × 高 → 高 ≤ 781
+   740 落在 705…781 中间，给最高那屏留 35px、给导航留 100px 余地。
+   **再矮会挤坏贴水果，再高就白让舞台缩得更小** —— 舞台越矮，手机上的缩放系数越大，
+   同一个舞台像素落到玻璃上越大。
+
+   于是触靶的下限：
+     系数 = 可视高 / 基准高。最坏一档按 iPhone 17 Pro 横屏算：可视高 358pt
+     （屏幕 402pt 减掉浏览器工具栏），系数 = 358 / 740 ≈ 0.4838。
+     红线是**物理** 44pt（docs/adr/0004 的硬验收），所以
+        孩子触靶的舞台尺寸 ≥ 44 / 0.4838 ≈ 90.9px
+     本讲一律取 **92px**（落到玻璃上 44.5pt，留一丝余量）。
+     导航图标 96px、纸样那两个 96px 高的键本来就够（46.4pt），不动。
+     注意这个下限跟基准高是**等比**的（92/740 ≈ 12.3%）：调高不会让触靶变松，
+     只会让每一个数一起变大 —— 挑基准高看的是「几行触靶要摞起来」，不是靶子大小。
+
+   带隐形热区（/shared/css/热区.css）的另算：那一圈外扩是按系数反算的，
+   落到玻璃上恒定约 10 物理 px 一边，所以
+        视觉尺寸 × 系数 + 20 ≥ 44   →   视觉 ≥ 50px 就够
+   视觉尺寸本身有意义（导航图标、图鉴缩略图、故意做小的滑块钮）时优先用热区；
+   **邻居也是个答案**的时候（格子纸的格、贴纸板的格、两面旗）只能真放大 ——
+   热区四面一起扩，会扩到邻居身上，孩子按在缝上涂错一格，得先发现涂错了才能改。
+
+   一条连带的规矩：**舞台里不许再写 vh / vw**。它们量的是窗口，而这儿的坐标系是
+   舞台，两者只在「窗口正好等于基准」时才对得上；手机上 clamp() 会被压到下限，
+   于是整屏东西先小一圈、再被舞台缩一次。已有的都换成了「在 1280 × 740 这个
+   基准上它本来的值」。**唯一的例外是挂在 body 上的那几层**（开始遮罩、转屏拦罩、
+   图鉴的大庆祝）：它们在舞台**外面**，铺的是真屏幕，vh/vw 在那儿才是对的。
+   =========================================================================== */
+
+:root {
+  --底色: #f2f5fb;
+  --底色2: #e6ecf9;
+  --墨色: #2b3352;
+  --高亮: #4c6fff;
+  --滑块高: 30px;
+  /*
+    折叠滑块的把手 —— 孩子拖的就是它，所以按触靶下限 92px 来（推导见文件头）。
+    这一个没法用隐形热区糊过去：`::-webkit-slider-thumb` 是伪元素，挂不上第二层伪元素，
+    而 iOS 上点轨道也不会让原生 range 跳过去（只有 Blink 会），能抓的就只有把手本身。
+  */
+  --把手大小: 92px;
+  /* 两面旗在粗指针上真变大（/shared/css/语言开关.css 留的钩子）。
+     共享件的缺省 80px 是按别的系数算的，本讲的下限是 92。
+     两面旗紧挨着，谁也不能用热区 —— 按在缝上换成的是**另一门课**。 */
+  --旗靶: 92px;
+
+  /* 横屏小黑条（home indicator）真正吃进舞台的那一段，用共享的 --躲下
+     （公式在 /shared/css/舞台.css，两讲共用一份）。 */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, var(--底色) 55%, var(--底色2) 100%);
+  color: var(--墨色);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ===========================================================================
+   实体图：屏幕上的水果和小助手是贴纸风素材，不是绘文字
+   =========================================================================== */
+
+/*
+  `画实体()`（/shared/js/实体图.js）造出来的那张 <img> 全站就这一条样式。
+  它有图给图、没图给一个绘文字文本节点 —— 所以每一处的**尺寸仍旧由那一处
+  自己的 font-size 说了算**，这儿只写 1em 见方：1em 正好是原先那个绘文字的
+  字号盒，换了图谁也不许挪位（格子纸的水果、猜一猜的题面和猫猫、贴水果的兔兔、
+  贴水果的水果盘和贴上去的那张贴纸，换图前后每一个都落在原来的像素上）。
+
+  画到 canvas 上的贴图不走这儿 —— 三维那六个面和贴水果关的格子面是另一条路，
+  见 render/贴纸贴图.js（那套素材加载全讲只有那一处）。
+  打印纸样也不走这儿，它有意保留绘文字（见 ui/printSheet.js）。
+*/
+.实体图 {
+  width: 1em;
+  height: 1em;
+  object-fit: contain;
+  /* 灰掉/变淡的那几档（没答的猫猫、答错的兔兔）挂在外面那个 span 上，图跟着走 */
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* ===========================================================================
+   开始遮罩：Chrome 不许没人动过手的页面出声，这一下点击就是那只手
+   =========================================================================== */
+
+.开始遮罩 {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  /* 原来是近乎纯白的浅灰，看着像「页面还没加载完」。
+     换成呼应 🧊 图标的冰蓝，一眼就是「要开始的游戏」。中心刻意留浅、偏青，
+     跟 ▶ 按钮自己那个更蓝更饱和的渐变拉开一截 —— 不然按钮会糊进背景里。 */
+  background: radial-gradient(circle at 50% 40%, #eaf9ff, #b9d4f5 60%, #7fa0e0);
+  transition: opacity 0.45s ease, visibility 0.45s;
+}
+
+/* 收起来只是让它退到后面去，不 display:none —— 和面板一个道理，别让布局跳一下 */
+.开始遮罩.收起 {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.开始牌 {
+  text-align: center;
+}
+
+.开始图 {
+  font-size: 110px;
+  animation: 飘 3s ease-in-out infinite;
+}
+
+.开始钮 {
+  margin-top: 26px;
+  width: 130px;
+  height: 130px;
+  border: none;
+  border-radius: 50%;
+  font-size: 52px;
+  color: white;
+  cursor: pointer;
+  background: linear-gradient(#8aa4ff, var(--高亮));
+  box-shadow: 0 12px 0 #3550c9, 0 18px 40px rgba(76, 111, 255, 0.3);
+  animation: 心跳 1.6s ease-in-out infinite;
+}
+
+.开始钮:active {
+  transform: translateY(8px);
+  box-shadow: 0 4px 0 #3550c9;
+}
+
+@keyframes 心跳 {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.07);
+  }
+}
+
+@keyframes 飘 {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+/* ===========================================================================
+   外壳：最左边一条导航，右边是当前那个玩法
+   =========================================================================== */
+
+.外壳 {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  height: 100%;
+}
+
+/* 竖排五个很大的图标。图标上一个字都没有，名字全交给语音 */
+.导航 {
+  z-index: 5;
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  padding: 18px 18px 78px;
+  background: rgba(255, 255, 255, 0.66);
+  backdrop-filter: blur(16px);
+  box-shadow: 1px 0 0 rgba(43, 51, 82, 0.06);
+}
+
+.导航图标 {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /*
+    96px 高于本讲的触靶下限 92px（推导见文件头，落到玻璃上 46.4pt）——
+    docs/adr/0004 那条红线就是从这条注释升格的，这儿反倒不用改。
+    它同时是基准舞台**高**的上限出处：96 得压得住下限，高就不许超过 781。
+    flex: none 是它的保险：竖排五个 96px 加四道 16px 的缝、再加上下内边距，
+    这一列要 640px 高。舞台再矮一点，
+    flex 默认会把五个图标一起压小到红线以下，而且压得**不声不响**。
+    不许压：宁可让它顶出舞台被裁掉一点，让人一眼看见舞台不够高。
+  */
+  flex: none;
+  width: 96px;
+  height: 96px;
+  padding: 0;
+  border: 3px solid transparent;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  transition:
+    transform 0.14s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+/* 没选中的图标压成灰的，选中那个是唯一有颜色的 —— 一眼看得出人在哪儿 */
+.导航图 {
+  font-size: 50px;
+  line-height: 1;
+  filter: grayscale(1) opacity(0.55);
+  transition:
+    filter 0.18s ease,
+    transform 0.14s ease;
+}
+
+/*
+  下面这一批 :hover 全部只有鼠标才进得去（docs/adr/0004：hover 降级为纯装饰）。
+  触屏上点一下之后 :hover 会**粘**在那个按钮上不放 —— 孩子看到的是一个被点大了
+  再也没缩回去的图标，而他不认字，看不出那是残留还是「选中了」。
+*/
+@media (hover: hover) {
+  .导航图标:hover {
+    background: #eaf0ff;
+    transform: scale(1.05);
+  }
+
+  .导航图标:hover .导航图 {
+    filter: none;
+  }
+}
+
+.导航图标.当前 {
+  border-color: var(--高亮);
+  background: linear-gradient(160deg, #ffffff 0%, #dde6ff 100%);
+  box-shadow: 0 12px 28px rgba(76, 111, 255, 0.3);
+  transform: scale(1.07);
+}
+
+.导航图标.当前 .导航图 {
+  filter: none;
+  transform: scale(1.06);
+}
+
+/* 选中那个左边还支出一根蓝条，选中态不能只靠颜色 */
+.导航图标.当前::before {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 50%;
+  width: 7px;
+  height: 48px;
+  border-radius: 999px;
+  background: var(--高亮);
+  transform: translateY(-50%);
+}
+
+.导航图标:focus-visible {
+  outline: 3px solid var(--高亮);
+  outline-offset: 4px;
+}
+
+/* 五个面板叠在同一格里，只换谁在前面 */
+.内容 {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+}
+
+.模式面板 {
+  grid-area: 1 / 1;
+  min-width: 0;
+  min-height: 0;
+  /*
+    藏起来用的是 visibility，不是 display:none ——
+    沙盒那块的三维舞台得一直保着原来的宽高，
+    孩子切走再切回来，衣服还在原地，镜头也不用重新拟合。
+  */
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.18s ease,
+    visibility 0s linear 0.18s;
+}
+
+.模式面板.在前 {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transition:
+    opacity 0.18s ease,
+    visibility 0s;
+}
+
+/* 还没实现的玩法：摆一个淡到几乎看不见的大图标占着位子 */
+.占位 {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 192px; /* 原来是 clamp(96px, 15vw, 200px)：15vw 在 1280 的基准上就是 192 */
+  filter: grayscale(1);
+  opacity: 0.14;
+}
+
+/* ===========================================================================
+   麦克风坞的长相搬去了 /shared/css/麦克风坞.css（两讲共用一份）。
+   这儿只留本讲的配色：那只大钮换成本讲的蓝紫，跟 --高亮 一路。
+   =========================================================================== */
+
+:root {
+  --坞按钮亮: #8aa4ff;
+  --坞按钮暗: #4c6fff;
+  --坞按钮影: #3550c9;
+  --坞纸: rgba(255, 255, 255, 0.93);
+  --坞软影: 0 10px 26px rgba(43, 51, 82, 0.18);
+}
+
+/*
+  折叠滑块拉出来的时候，那根胖条子正好铺在屏幕底部正中 —— 麦克风原地不动就跟它叠在一起。
+  让麦克风抬到条子上面去，别让两个都想站在正中央的东西互相压。
+  抬多少 = 条子高 118（把手 92 + 上下内边距 13×2）+ 它离地 26 + 12 的缝 = 156。
+*/
+.麦克风坞挂点.让位 {
+  /* 小黑条（横屏的 home indicator）也占着屏幕最底下那一条 —— 条子本身也让开同样一段，
+     两个一起抬，缝还是那道缝。除以舞台系数：env() 报的是屏幕上的物理像素，
+     而这儿写的是舞台里的像素，整个舞台又被 scale() 缩过一次 */
+  --坞离地: calc(156px + var(--躲下));
+}
+
+/* ===========================================================================
+   滑块钮：老玩法退居二线，缩成角落一个小图标
+   =========================================================================== */
+
+/*
+  46px 是**看着**的尺寸，故意小 —— 这一档玩法退居二线，大了就跟主角抢戏。
+  按着的范围另说：孩子要点得着它（点了才滑出折叠条），所以补一圈隐形热区，
+  视觉一个像素不动。共享工具类，别手抄。
+
+  12px 是**屏幕上**的量（热区.css 除以舞台系数反算回舞台像素），所以这一处按
+  「视觉 × 系数 + 24 ≥ 44」验：46 × 0.4838 + 24 ≈ 46.3pt，过线。
+  （默认的 10px 只到 42.3pt —— 差一个多点，这就是为什么这儿写了个数。）
+  外扩不到别人身上：左右上三面都是三维那块空地，右边就是屏幕边，
+  底下那根折叠条离得更远（它居中，右端还在 100 多像素外）。
+*/
+.滑块钮 {
+  --热区: 12px;
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+  align-self: end;
+  z-index: 6;
+  width: 46px;
+  height: 46px;
+  margin: 0 18px 8px 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  font-size: 21px;
+  line-height: 1;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 8px 20px rgba(43, 51, 82, 0.12);
+  opacity: 0.45;
+  filter: grayscale(1);
+  transition:
+    opacity 0.2s ease,
+    filter 0.2s ease,
+    transform 0.14s ease;
+}
+
+/* 开着是状态，得留着；hover 只是鼠标经过时的装饰，两条不能再挤在一个选择器里 */
+.滑块钮.开着 {
+  opacity: 1;
+  filter: none;
+  transform: scale(1.1);
+}
+
+@media (hover: hover) {
+  .滑块钮:hover {
+    opacity: 1;
+    filter: none;
+    transform: scale(1.1);
+  }
+}
+
+/* 收起来只是滑下去，不 display:none —— 滑块得一直保着宽度，
+   不然它一露面 刷新进度条() 量到的宽是 0，蓝色那段会错位 */
+.折叠条.收着 {
+  transform: translateY(140%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ===========================================================================
+   重来：缩在左下角，小、灰、要点两下
+   =========================================================================== */
+
+/* 12px 再加横屏小黑条真吃进舞台的那一段（见 /shared/css/舞台.css 的 --躲下）：
+   底边那一条是系统的地盘，压上去孩子一划就回桌面了 */
+.重来角 {
+  position: fixed;
+  left: 12px;
+  bottom: calc(12px + var(--躲下));
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.重来 {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.3;
+  filter: grayscale(1);
+  transition:
+    opacity 0.2s ease,
+    filter 0.2s ease,
+    transform 0.14s ease;
+}
+
+/* 键盘走到它头上照旧要看得见（这条跟指针无关），hover 那一半才关进鼠标里 */
+.重来:focus-visible {
+  opacity: 1;
+  filter: none;
+  transform: scale(1.12);
+}
+
+@media (hover: hover) {
+  .重来:hover {
+    opacity: 1;
+    filter: none;
+    transform: scale(1.12);
+  }
+}
+
+/* 问句不写在屏幕上（孩子不认字），走语音；这儿只有一绿一灰两个图标 */
+.重来确认 {
+  display: none;
+  align-items: center;
+  gap: 14px; /* 两个 92px 的圆钮之间要留得下一根手指的误差，8px 是给鼠标算的 */
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 28px rgba(43, 51, 82, 0.2);
+}
+
+.重来角.问着 .重来确认 {
+  display: flex;
+  animation: 冒出来 0.16s ease;
+}
+
+.重来角.问着 .重来 {
+  opacity: 1;
+  filter: none;
+}
+
+@keyframes 冒出来 {
+  from {
+    opacity: 0;
+    transform: translateX(-8px) scale(0.9);
+  }
+}
+
+/*
+  「重来」那个小灰钮故意小（大人的钮，防孩子误点，是功能不是缺陷），
+  但**它问出来的这两个键不一样**：这一下是要点准的，点错一个进度就没了。
+  所以按触靶下限真放大到 92px（docs/adr/0004 点名的三个之一，推导见文件头）。
+  中间那道缝也跟着从 8px 放到 14px（见 .重来确认）—— 两个这么大的圆钮贴在一起，
+  「要」和「不要」就成了同一个靶子。
+*/
+.确认键 {
+  width: 92px;
+  height: 92px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  font-size: 38px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+@media (hover: hover) {
+  .确认键:hover {
+    transform: scale(1.12);
+  }
+}
+
+.确认键.要 {
+  background: #ddf6e5;
+}
+
+.确认键.不要 {
+  background: #eef0f7;
+}
+
+.确认键:focus-visible {
+  outline: 3px solid var(--高亮);
+  outline-offset: 3px;
+}
+
+/* ===========================================================================
+   语言开关：右上角两面旗，单击即切
+
+   结构和行为在 /shared/js/语言开关.js，长相的底子在 /shared/css/语言开关.css，
+   这儿只管摆在哪儿、接本讲的调色板、再加两笔本讲自己的手感（黄圈、放大、聚焦框）。
+
+   刻意跟左下角那个「重来」长得不一样：这两面旗是彩色的、看得清的、点一下就生效的。
+   换语言是可逆的，一个字的进度都不动 —— 拦一道确认只会让孩子不敢碰它。
+   =========================================================================== */
+
+.语言开关 {
+  position: fixed;
+  top: 12px;
+  right: 14px;
+  z-index: 30;
+  gap: 6px;
+  padding: 5px 7px;
+  --旗底: rgba(255, 255, 255, 0.7);
+  --旗影: 0 8px 22px rgba(43, 51, 82, 0.12);
+  --旗号: 21px;
+  /* 选中态本讲用一圈黄边（下面那条规则），共享件那块底色就不要了 */
+  --旗选中底: transparent;
+}
+
+.语言开关 .旗 {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 3px solid transparent;
+  border-radius: 50%;
+  opacity: 0.4;
+  transition:
+    opacity 0.2s ease,
+    filter 0.2s ease,
+    transform 0.14s ease,
+    border-color 0.2s ease;
+}
+
+/* 选中态还是只认 aria-pressed（共享件的规矩，一个真值，没有伴生的 .选中 类）——
+   这儿动的只有「鼠标经过」和「键盘走到」两笔手感，前者关进 @media (hover: hover) */
+.语言开关 .旗:focus-visible {
+  opacity: 1;
+  filter: none;
+  transform: scale(1.12);
+}
+
+@media (hover: hover) {
+  .语言开关 .旗:hover {
+    opacity: 1;
+    filter: none;
+    transform: scale(1.12);
+  }
+}
+
+.语言开关 .旗:focus-visible {
+  outline: 3px solid var(--高亮);
+  outline-offset: 3px;
+}
+
+/* 上的就是这门课 */
+.语言开关 .旗[aria-pressed='true'] {
+  border-color: #ffd54a;
+  background: rgba(255, 213, 74, 0.2);
+}
+
+/* 打印纸样时，导航、重来和语言开关都不该印在纸上 */
+@media print {
+  .导航,
+  .重来角,
+  .语言开关 {
+    display: none !important;
+  }
+}
+
+/* ===========================================================================
+   沙盒：左边画（格子纸），右边看（舞台），底下折（滑块）
+   =========================================================================== */
+
+.沙盒 {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  height: 100%;
+}
+
+/* 格子纸：一张 5 列 × 4 行的空纸，点一下涂上颜色，再点一下取消 */
+.格子纸 {
+  /*
+    定死一个数，不再按 vw 伸缩：整讲画在基准舞台上（docs/adr/0004），
+    几何只定义一次、由舞台整块缩到屏幕上 —— 这时候 vw 量的还是**窗口**，
+    等于让同一张纸在不同屏幕上有不同的舞台尺寸，正是舞台要取消的那件事。
+    （手机横屏上 5.4vw 会掉到 49px，再被舞台缩一次，孩子按不着。）
+    92px 是本讲的触靶下限（推导见文件头）。这一处是「只能真放大」的典型：
+    格子挨着格子，隐形热区四面一起扩就扩到邻格身上 —— 按在缝上涂错一格，
+    孩子得先发现涂错了才改得回来，而涂到第七格还会被拦下。
+    整张纸于是 5×92 + 4 道 9px 的缝 + 40 内边距 = 536 宽、435 高，
+    沙盒那一行 596 装得下。
+  */
+  --纸格: 92px;
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+  display: grid;
+  grid-template-columns: repeat(var(--列数, 5), var(--纸格));
+  grid-auto-rows: var(--纸格);
+  gap: 9px;
+  margin: 0 10px 0 36px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.84);
+  backdrop-filter: blur(14px);
+  border-radius: 30px;
+  box-shadow: 0 18px 44px rgba(43, 51, 82, 0.13);
+}
+
+.纸格子 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 2.5px dashed #c6cfe6;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.55);
+  font-size: calc(var(--纸格) * 0.46);
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 0.12s ease,
+    background-color 0.16s ease,
+    border-color 0.16s ease;
+}
+
+@media (hover: hover) {
+  .纸格子:hover {
+    border-color: #93a4d6;
+    background: #eaf0ff;
+    transform: scale(1.06);
+  }
+}
+
+/* 涂了的格子：整块颜色 + 一圈白边，跟三维里那个面上的贴图是同一个长相 */
+.纸格子.涂了 {
+  border-style: solid;
+  border-color: rgba(255, 255, 255, 0.75);
+  box-shadow:
+    inset 0 0 0 3px rgba(255, 255, 255, 0.7),
+    0 5px 12px rgba(43, 51, 82, 0.18);
+}
+
+.纸格子:focus-visible {
+  outline: 3px solid var(--高亮);
+  outline-offset: 3px;
+}
+
+/* 第七格点不上。孩子不认字，所以只抖一下纸，话交给语音说 */
+.格子纸.满了 {
+  animation: 抖一下 0.34s ease;
+}
+
+@keyframes 抖一下 {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-7px);
+  }
+  60% {
+    transform: translateX(6px);
+  }
+}
+
+/* 三维舞台 —— 留白给足，衣服自己占中间 */
+.舞台 {
+  position: relative;
+  grid-column: 2;
+  grid-row: 1;
+  min-height: 0;
+}
+
+.舞台 canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.舞台 canvas:active {
+  cursor: grabbing;
+}
+
+/* 折叠条：一根很大的滑块，两端各一个图标，没有一个字 */
+.折叠条 {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  width: min(880px, 92%); /* 按沙盒自己那块地方算，不按整个窗口 —— 左边还占着一条导航 */
+  margin: 0 auto;
+  /*
+    上下 13px（原来 22px）：把手从 62px 长到 92px（触靶下限），差的那一截先从这道
+    内边距里出，条子只长了 12px（106 → 118）。长了多少要跟 .麦克风坞挂点.让位
+    那个数一起算 —— 忘了调，滑块和麦克风就又叠在一起了。
+  */
+  padding: 13px 34px;
+  /* 底边那一条是横屏小黑条的地盘，往上让开一段（同 .重来角） */
+  margin-bottom: calc(26px + var(--躲下));
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px);
+  border-radius: 999px;
+  box-shadow: 0 18px 44px rgba(43, 51, 82, 0.13);
+  transition:
+    transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2),
+    opacity 0.2s ease;
+}
+
+.折叠条.停用 {
+  opacity: 0.42;
+}
+
+.端图标 {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  fill: #9aa5c4;
+  transition: fill 0.25s ease;
+}
+
+.折叠条:not(.停用) .端图标:first-of-type {
+  fill: #8f9cc0;
+}
+
+.折叠条:not(.停用) .端图标:last-of-type {
+  fill: var(--高亮);
+}
+
+/*
+  滑块本体。**故意不给它自己写 touch-action**：基准舞台那一层是 `touch-action: none`，
+  而 touch-action 是从命中的元素一路往上取交集算出来的（不是继承），所以舞台那一条
+  管得到这根滑块 —— 这正是原生 range 想要的：手指在把手上斜着划一下，浏览器不会
+  抢去当滚动/回弹，把手稳稳跟着走。改成 manipulation 反倒把「划歪一点就变成拽页面」
+  请回来了。拖动本身不靠 touch-action，那是 range 自己的默认行为，掐掉手势也还在。
+*/
+.折叠滑块 {
+  --进度: 0px;
+  flex: 1;
+  height: var(--把手大小);
+  margin: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.折叠滑块:disabled {
+  cursor: default;
+}
+
+.折叠滑块::-webkit-slider-runnable-track {
+  height: var(--滑块高);
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, #6d8bff 0%, #4c6fff var(--进度), rgba(0, 0, 0, 0) var(--进度)),
+    #dfe5f4;
+}
+
+.折叠滑块::-moz-range-track {
+  height: var(--滑块高);
+  border-radius: 999px;
+  background: #dfe5f4;
+}
+
+.折叠滑块::-moz-range-progress {
+  height: var(--滑块高);
+  border-radius: 999px;
+  background: #4c6fff;
+}
+
+.折叠滑块::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: var(--把手大小);
+  height: var(--把手大小);
+  margin-top: calc((var(--滑块高) - var(--把手大小)) / 2);
+  border: 5px solid #4c6fff;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(76, 111, 255, 0.35);
+  transition: transform 0.12s ease;
+}
+
+.折叠滑块::-moz-range-thumb {
+  width: var(--把手大小);
+  height: var(--把手大小);
+  border: 5px solid #4c6fff;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(76, 111, 255, 0.35);
+}
+
+@media (hover: hover) {
+  .折叠滑块:hover::-webkit-slider-thumb {
+    transform: scale(1.06);
+  }
+}
+
+.折叠滑块:active::-webkit-slider-thumb {
+  transform: scale(1.12);
+}
+
+.折叠滑块:focus {
+  outline: none;
+}
+
+/* 家长伴读页的入口。要同时满足两件相反的事：
+   孩子扫一眼不想点，家长想找的时候一眼找得到。
+   靠的是「无色彩、无动效、是一段字」——五岁的孩子被颜色和会动的东西吸引，
+   不被灰字吸引；而认字的大人对字最敏感。所以尺寸可以给够，别给颜色。
+   （12px 试过，太小了，家长自己都要找半天。） */
+.家长页钮 {
+  position: fixed;
+  right: 52px;
+  bottom: 16px;
+  z-index: 9;
+  padding: 5px 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: #79808a;
+  background: rgba(15, 23, 42, 0.05);
+  text-decoration: none;
+}
+@media (hover: hover) {
+  .家长页钮:hover { color: #4b5563; background: rgba(15, 23, 42, 0.09); }
+}
+
+/*
+  🏡 回上一层。孩子的钮（CLAUDE.md：🏡 = 上一层），所以受触靶红线管 ——
+  原先只有一个 28px 的绘文字，行内写死的，五岁的手指按十次中不了三次。
+
+  位置从「和家长钮并排挤在右下角」挪到了**它上面**：一个 92px 的靶子按在原地的话，
+  左边整整压住那个大人的「家长」链接，孩子想回家会点开家长页，大人想看家长页
+  会被送回首页。两个钮谁也不许吃掉谁的点击，就得先把它们分开 ——
+  家长钮占着 bottom 16 到 42 那一段，这儿从 54 起，中间留 12px 谁都不碰。
+  隐形热区在这儿不管用：外扩是四面一起扩的，往左那一圈正好扩进家长钮。
+
+  刻意仍旧不显眼（半透明、无底色）：它不是玩法，只是一条退路。
+*/
+.回首页钮 {
+  position: fixed;
+  right: 6px;
+  bottom: calc(54px + var(--躲下));
+  z-index: 9;
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  font-size: 28px; /* 靶子大了，图形大小不动 —— 换的是按得着，不是看着 */
+  line-height: 1;
+  text-decoration: none;
+  opacity: 0.55;
+  transition: opacity 0.2s ease;
+}
+
+@media (hover: hover) {
+  .回首页钮:hover { opacity: 1; }
+}
+
+.回首页钮:focus-visible {
+  outline: 3px solid var(--高亮);
+  outline-offset: 2px;
+  border-radius: 22px;
+}

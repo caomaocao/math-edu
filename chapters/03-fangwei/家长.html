@@ -1,0 +1,1231 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>第3讲 空间方位大冒险 · 家长伴读页</title>
+    <style>
+      /* 家长伴读页 —— 给识字的大人看的普通网页：正常字号、可长滚动、可打印。
+         不受儿童 UI 铁律约束，也不引任何脚本（答案是人工誊写的，改题库要记得回来改这里）。 */
+
+      :root {
+        --墨: #2c3a49;
+        --淡墨: #61727f;
+        --纸: #fffdf8;
+        --底: #f2efe7;
+        --线: #ded8ca;
+        --湖: #3d8fb8;
+        --樱桃: #c9553f;
+        --草: #4b8a52;
+        --高亮: #fff3d6;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        background: var(--底);
+        color: var(--墨);
+        font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+        font-size: 16px;
+        line-height: 1.75;
+        /* 关掉 iOS 的自动放大字：这一页大段散文，竖屏转横屏时 WebKit 会自己把正文加大
+           一档，字号层级当场乱掉，转回来还不一定收得回去。 */
+        -webkit-text-size-adjust: 100%;
+      }
+
+      .纸张 {
+        max-width: 940px;
+        margin: 0 auto;
+        padding: 40px 48px 96px;
+        background: var(--纸);
+        min-height: 100vh;
+        /* 手机上的 100vh 按「工具栏收起时」算，页面因此凭空多一截可滚；dvh 量的是眼下
+           真看得见的那块。不认 dvh 的浏览器停在上一行。 */
+        min-height: 100dvh;
+        box-shadow: 0 0 40px rgba(44, 58, 73, 0.08);
+      }
+
+      /* ---------------- 页头 ---------------- */
+
+      .页头 { border-bottom: 3px solid var(--墨); padding-bottom: 20px; margin-bottom: 8px; }
+      .页头 .眉 { font-size: 14px; color: var(--淡墨); letter-spacing: 0.14em; }
+      .页头 h1 { font-size: 30px; margin: 6px 0 10px; line-height: 1.3; }
+      .页头 .摘 { color: var(--淡墨); font-size: 15px; margin: 0; }
+
+      .书页 {
+        display: inline-block; margin-top: 14px; padding: 4px 12px;
+        border: 1px solid var(--线); border-radius: 4px;
+        font-size: 14px; color: var(--淡墨); background: #fff;
+      }
+
+      .提醒条 {
+        margin: 22px 0 10px; padding: 14px 18px;
+        background: var(--高亮); border-left: 4px solid #e0b64a;
+        font-size: 14.5px; border-radius: 0 6px 6px 0;
+      }
+      .提醒条 b { color: #8a6410; }
+
+      /* ---------------- 目录 ---------------- */
+
+      nav.目录 {
+        margin: 26px 0 34px; padding: 18px 22px;
+        background: #f7f4ec; border: 1px solid var(--线); border-radius: 8px;
+        font-size: 14.5px;
+      }
+      nav.目录 h2 { font-size: 14px; margin: 0 0 10px; letter-spacing: 0.1em; color: var(--淡墨); }
+      nav.目录 ol { margin: 0; padding-left: 20px; }
+      nav.目录 li { margin: 3px 0; }
+      nav.目录 a { color: var(--湖); text-decoration: none; }
+      /* 下划线只是装饰，所以只发给真有指针的设备：手指点过的链接 hover 会一直粘着，
+         看着像这一条还选中着。 */
+      @media (hover: hover) {
+        nav.目录 a:hover { text-decoration: underline; }
+      }
+      nav.目录 .细 { color: var(--淡墨); font-size: 13.5px; }
+
+      /* ---------------- 章节 ---------------- */
+
+      section.大段 { margin-top: 52px; }
+      section.大段 > h2 {
+        font-size: 23px; margin: 0 0 6px;
+        padding-bottom: 8px; border-bottom: 2px solid var(--墨);
+      }
+      section.大段 > .段引 { color: var(--淡墨); font-size: 14.5px; margin: 0 0 22px; }
+
+      h3 { font-size: 18.5px; margin: 34px 0 8px; }
+      h3 .序 {
+        display: inline-block; min-width: 26px; margin-right: 8px;
+        color: var(--湖); font-variant-numeric: tabular-nums;
+      }
+      h4 { font-size: 15.5px; margin: 20px 0 6px; color: var(--淡墨); }
+      p { margin: 8px 0; }
+
+      /* ---------------- 教学大纲的阶梯 ---------------- */
+
+      .阶梯 { margin: 24px 0 8px; }
+      .阶 {
+        border-left: 4px solid var(--湖); padding: 2px 0 2px 20px; margin: 0 0 26px;
+      }
+      .阶:nth-child(2) { border-color: #6aa9c9; }
+      .阶:nth-child(3) { border-color: #8ab86b; }
+      .阶:nth-child(4) { border-color: #d09a4b; }
+      .阶 .阶名 { font-size: 17px; font-weight: 700; margin: 0 0 2px; }
+      .阶 .阶环节 { font-size: 13.5px; color: var(--淡墨); margin: 0 0 8px; }
+
+      /* ---------------- 环节帮助卡 ---------------- */
+
+      .帮助 {
+        border: 1px solid var(--线); border-radius: 8px;
+        padding: 4px 22px 18px; margin: 0 0 26px; background: #fff;
+        break-inside: avoid;
+      }
+      .帮助 dl { margin: 10px 0 0; }
+      .帮助 dt {
+        font-weight: 700; font-size: 14px; color: var(--湖);
+        margin-top: 12px; letter-spacing: 0.04em;
+      }
+      .帮助 dd { margin: 2px 0 0; }
+      .帮助 ul { margin: 4px 0; padding-left: 22px; }
+      .帮助 li { margin: 3px 0; }
+
+      .口径 {
+        background: #f5f8fa; border: 1px dashed #b9cdd8;
+        border-radius: 6px; padding: 8px 14px; margin: 4px 0 0;
+        font-size: 14.5px;
+      }
+      .口径 .词 { font-weight: 700; }
+      .口径 code {
+        font-family: inherit; background: #e6eef3; border-radius: 3px;
+        padding: 0 5px; margin: 0 1px; white-space: nowrap;
+      }
+
+      .卡点 { color: var(--樱桃); }
+
+      /* ---------------- 表格 ---------------- */
+
+      table {
+        width: 100%; border-collapse: collapse; margin: 12px 0 6px;
+        font-size: 14.5px; break-inside: avoid;
+      }
+      caption {
+        text-align: left; font-size: 13.5px; color: var(--淡墨);
+        padding-bottom: 6px;
+      }
+      th, td { border: 1px solid var(--线); padding: 7px 10px; text-align: left; vertical-align: top; }
+      th { background: #f4f1e9; font-weight: 700; }
+      td.答 { font-weight: 700; color: var(--草); }
+      td.格 { font-variant-numeric: tabular-nums; white-space: nowrap; }
+      tbody tr:nth-child(even) td { background: #fbfaf6; }
+
+      .摆盘 { width: auto; min-width: 60%; text-align: center; }
+      .摆盘 th, .摆盘 td { text-align: center; }
+      .摆盘 td.空格 { color: #b5b0a3; }
+
+      .随机 {
+        display: inline-block; font-size: 12.5px; padding: 1px 8px;
+        border: 1px solid #cbb98f; border-radius: 10px; color: #8a6410;
+        background: #fdf6e4; vertical-align: 2px; margin-left: 8px;
+        font-weight: 400;
+      }
+      .固定 {
+        display: inline-block; font-size: 12.5px; padding: 1px 8px;
+        border: 1px solid #a8c9b0; border-radius: 10px; color: #3c6b45;
+        background: #f0f7f1; vertical-align: 2px; margin-left: 8px;
+        font-weight: 400;
+      }
+
+      .脚注 {
+        margin-top: 60px; padding-top: 18px; border-top: 1px solid var(--线);
+        font-size: 13.5px; color: var(--淡墨);
+      }
+
+      .回顶 { font-size: 13px; }
+      .回顶 a { color: var(--淡墨); text-decoration: none; }
+
+      /* ---------------- 手机竖屏：家长单手拿着读 ---------------- */
+
+      /* 这一页本来就是流式散文，横过来不用管；竖屏 402pt 缺的只有两样：**纸边太宽**
+         （48 × 2 是给 940 宽的纸面调的，402 上一下吃掉四分之一），以及**表头那些
+         em 宽度**（见下）。所以这一段只收留白、不动结构。 */
+      @media (max-width: 640px) {
+        .纸张 { padding: 24px 16px 72px; box-shadow: none; }
+        .页头 h1 { font-size: 25px; }
+        .提醒条 { padding: 12px 14px; }
+
+        nav.目录 { padding: 14px 16px; }
+        nav.目录 ol { padding-left: 22px; }
+        /* 目录三条挨得太近，一根手指容易点错行：把链接撑成 38px 高的块，
+           行距也跟着松一点。「细」那截说明不是链接，照旧跟在后面折行。 */
+        nav.目录 li { margin: 8px 0; }
+        nav.目录 a { display: inline-block; padding: 6px 0; }
+        .回顶 a { display: inline-block; padding: 8px 0; }
+
+        section.大段 { margin-top: 38px; }
+        .阶 { padding-left: 14px; }
+        .帮助 { padding: 4px 14px 14px; }
+        .帮助 ul, .帮助 ol { padding-left: 18px; }
+        .口径 { padding: 8px 10px; }
+
+        /* 表头上写死的 3em / 8em / 14em 是照 900 宽的纸面配的：在 370 宽的手机上，
+           14em 的答案栏能把「指令」挤成一行四个字，自己却空着一半。松掉之后浏览器
+           按两栏的实际内容长短分配，比任何一组死数字都合适。
+           宽度写在标签的 style 上是老账，只能用 !important 压 —— 不值得为这一条
+           把二十来张表逐个改过来。 */
+        table th[style] { width: auto !important; }
+        table { font-size: 14px; }
+        th, td { padding: 6px 8px; }
+        caption { font-size: 13px; }
+      }
+
+      /* ---------------- 打印：黑白可读，藏掉导航 ---------------- */
+
+      @media print {
+        body { background: #fff; font-size: 11.5pt; line-height: 1.55; }
+        .纸张 { max-width: none; margin: 0; padding: 0; box-shadow: none; min-height: 0; }
+        nav.目录, .回顶 { display: none; }
+        .提醒条 { background: #fff; border-left: 3px solid #000; }
+        .帮助 { border: 1px solid #999; background: #fff; }
+        .帮助 dt { color: #000; text-decoration: underline; }
+        .口径 { background: #fff; border: 1px dashed #999; }
+        .口径 code { background: #eee; }
+        .卡点 { color: #000; font-weight: 700; }
+        td.答 { color: #000; }
+        th { background: #eee !important; }
+        tbody tr:nth-child(even) td { background: #fff; }
+        h3 .序 { color: #000; }
+        .阶 { border-left: 3px solid #000; }
+        .随机, .固定 { border-color: #666; background: #fff; color: #000; }
+        section.大段 { break-before: page; }
+        section.大段:first-of-type { break-before: auto; }
+        h3 { break-after: avoid; }
+        a { color: #000; text-decoration: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="纸张" id="顶">
+      <header class="页头">
+        <div class="眉">大班数学 · 家长伴读页</div>
+        <h1>第3讲 空间方位大冒险</h1>
+        <p class="摘">
+          十四个环节的教学大纲、操作帮助、口答判对口径与全部答案。给陪玩的大人看，孩子看不懂也不必看。
+        </p>
+        <div class="书页">对应书页：第 26–36 页</div>
+      </header>
+
+      <div class="提醒条">
+        <b>先说清楚一件事：</b>这一页写的全部是<b>网页活动</b>的玩法和答案，不是书上练习册的答案。
+        网页把书里的思路重新编排过——有些题换了角色和道具，还有三个关卡是自创的拓展。
+        请不要拿这一页去对照书页，会对不上，也不需要对得上。
+      </div>
+
+      <nav class="目录">
+        <h2>这一页有什么</h2>
+        <ol>
+          <li><a href="#大纲">教学大纲</a><span class="细">　六方位 → 行列 → 八大方位 → 地图，各阶段的能力点</span></li>
+          <li><a href="#帮助">各环节帮助</a><span class="细">　怎么操作、什么时候该说话、口答哪些说法算对、卡住了怎么办</span></li>
+          <li><a href="#答案">各环节答案</a><span class="细">　题目与答案口径，与环节里的题目数据逐题一致</span></li>
+        </ol>
+      </nav>
+
+      <!-- ================================================================ 一、教学大纲 -->
+      <section class="大段" id="大纲">
+        <h2>一、教学大纲</h2>
+        <p class="段引">
+          这一讲把「东西在哪儿」这件事拆成四级台阶，一级踩稳了再上一级。
+          十四个环节在探险地图上不锁顺序，但设计的推荐次序就是下面这四阶。
+          孩子如果卡在某一阶，回到那一阶的环节多玩两遍，比硬闯后面的关有用得多。
+        </p>
+
+        <div class="阶梯">
+          <div class="阶">
+            <p class="阶名">第一阶　六方位：以「一个东西」为中心说位置</p>
+            <p class="阶环节">环节：出发啦 · 礼物盒边的小伙伴 · 小小冰箱管理员</p>
+            <p>
+              先建立最朴素的空间语言：上面、下面、前面、后面、左边、右边。
+              关键不在于会念这六个词，而在于孩子明白<b>位置永远是相对某个参照物说的</b>——
+              「小猴在上面」这句话本身不完整，完整的是「小猴在<em>礼物盒的</em>上面」。
+            </p>
+            <p><b>能力点：</b></p>
+            <ul>
+              <li>听到方位词能指出对应位置（听 → 做）</li>
+              <li>看到位置关系能说出方位词（看 → 说）</li>
+              <li>说位置时会带上参照物，不说光秃秃的「在上面」</li>
+              <li>「前 / 后」比「上 / 下」难：网页用<b>遮挡 + 大小 + 明暗</b>三样一起表示远近，孩子分不清时请指着屏幕说「谁挡住了谁」</li>
+            </ul>
+          </div>
+
+          <div class="阶">
+            <p class="阶名">第二阶　行列：用两个数字唯一地锁定一格</p>
+            <p class="阶环节">环节：森林点名 · 水果小超市（前半）· 小小冰箱管理员（装冰箱）</p>
+            <p>
+              从「旁边、下面」这种模糊描述，升级到「第 2 行第 3 列」这种精确定位。
+              这是小学坐标的直接前身。这一阶只有两条硬规矩，孩子记牢就不会错：
+              <b>行是横着的，从上往下数；列是竖着的，从左往右数。</b>
+            </p>
+            <p><b>能力点：</b></p>
+            <ul>
+              <li>会数行、会数列，且不把两者说反（说反是这一阶最常见的错）</li>
+              <li>看见一只动物能报出「第几行第几列」</li>
+              <li>反过来：听到「第 2 行第 3 列」能找到那一格（正逆双向都要会）</li>
+              <li>理解两个数字合起来才唯一——只说「第 2 行」是找不到一格的</li>
+            </ul>
+          </div>
+
+          <div class="阶">
+            <p class="阶名">第三阶　八大方位：换一套不随人转的坐标</p>
+            <p class="阶环节">环节：魔法罗盘 · 学校旁边有什么</p>
+            <p>
+              这一阶是全讲的分水岭。左右会随着人转身而变，东南西北不会。
+              网页刻意让孩子先摆一遍<b>生活罗盘</b>（八个箭头：上、右上、右……），
+              再摆一遍<b>地图罗盘</b>（八个方位字），两张盘的槽位完全重合——
+              这就是在演示「同一个方向的两个名字」。口诀只有一句：<b>上北下南，左西右东</b>。
+              斜着的四个方位（东北 / 东南 / 西北 / 西南）由两个正方位拼出来，说的时候要说两个字。
+            </p>
+            <p><b>能力点：</b></p>
+            <ul>
+              <li>背得出并用得上口诀「上北下南，左西右东」</li>
+              <li>能在生活方位（上下左右）和地图方位（东南西北）之间互相翻译</li>
+              <li>认识四个斜方位，知道它们是两个方向的中间</li>
+              <li>认「东、南、西、北」这四个字——这是本讲唯一允许出现在孩子屏幕上的文字</li>
+            </ul>
+          </div>
+
+          <div class="阶">
+            <p class="阶名">第四阶　地图：在方位网格上连续移动</p>
+            <p class="阶环节">环节：帮妈妈整理衣柜 · 水果小超市（后半）· 去谁家做客 · 方向小司机 · 给小鸭拍照 · 挖宝藏 · 谁躲在哪儿 · 空间大冒险</p>
+            <p>
+              前三阶都是「静态地说出位置」，这一阶要求<b>动起来</b>：从某处出发，往某方向走几格，
+              到哪里。再往上还有两个更难的分支——「视角转换」（给小鸭拍照：别人眼里的世界和我眼里的不一样，
+              这是空间能力里最晚成熟的一项，五岁能玩得下来就很好，答错很正常）
+              和「空间记忆」（谁躲在哪儿：位置信息进短时记忆）。
+            </p>
+            <p><b>能力点：</b></p>
+            <ul>
+              <li>执行单步指令：从 A 往北走一格是谁</li>
+              <li>执行多步指令：往北 2 格再往东 1 格（挖宝藏，最多三步）</li>
+              <li>把方位当成动作指令用出来（方向小司机：喊方向控制小车）</li>
+              <li>视角转换：判断另一个座位上的人看到什么</li>
+              <li>空间记忆：物体消失后仍能回忆它刚才在哪边</li>
+              <li>综合调用：空间大冒险把前面全部混在一起连闯六道</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3>陪玩时可以留意的三件事</h3>
+        <ul>
+          <li><b>说法比对错重要。</b>孩子答「上面」和答「上边」在系统里一样算对，但如果他说「那里」「这边」，
+            那是参照物意识没建立，值得停下来带他重说一遍完整的话。</li>
+          <li><b>左右和东西说反不是笨。</b>五岁孩子的左右分辨本来就在发展中，
+            加上地图方位是新的一套，说反非常正常。请用口诀而不是纠正的语气：「我们念一遍——上北下南，左西右东」。</li>
+          <li><b>星星只记「完成」，不记「全对」。</b>三次答错之后网页会直接把答案告诉他并照样过关、照样给星星。
+            这是有意设计的：这一讲的目标是让孩子敢开口，不是考试。星星多不等于全会了。</li>
+        </ul>
+      </section>
+
+      <!-- ================================================================ 二、各环节帮助 -->
+      <section class="大段" id="帮助">
+        <h2>二、各环节帮助</h2>
+        <p class="段引">
+          十四个环节按探险地图上小路的顺序排列。每个环节写四件事：怎么操作、什么时候该说话、
+          口答哪些说法算对、卡住了怎么办。先看下面这段所有环节通用的部分。
+        </p>
+
+        <div class="帮助">
+          <h3>通用：语音、麦克风、三次机会、进度</h3>
+          <dl>
+            <dt>声音是怎么出来的</dt>
+            <dd>
+              题目全部由童声念出来，屏幕上刻意不写句子（孩子不认字）。声音优先走本机后端合成的童声；
+              如果家里断网、或者接口没配好，网页会<b>自动换成系统自带的朗读声音</b>继续讲题——
+              声音变了不代表网站坏了，玩法一点不受影响。同一句话只合成一次，之后从磁盘缓存读，反复玩不额外花钱。
+            </dd>
+
+            <dt>麦克风怎么用</dt>
+            <dd>
+              屏幕底部中间只有一只大麦克风。<b>点一下就开始录，说完不用管，静一秒多它自己停</b>（最长六秒）——
+              不需要教孩子「按住不放」。录音时按钮会跳动、有声波光环。
+              旁边的 🔊 是「再听一遍题目」，随时可以点。第一次进网站要点开场的 ▶ 才会向浏览器要麦克风权限。
+            </dd>
+
+            <dt>答错了会怎样（三次机会）</dt>
+            <dd>
+              <b>错第 1 次</b>：只鼓励，请他再试。
+              <b>错第 2 次</b>：给提示——通常是把参照物高亮起来，并说一句引导的话。
+              <b>错第 3 次</b>：直接把答案念给他听、演示一遍，然后<b>照样过关拿星</b>，绝不卡住。
+              另有一条独立的计数：如果是<b>没听清</b>（麦克风没收到话、或者说的话里找不到任何候选答案），
+              连续两次之后麦克风旁边会<b>亮出几个可以点的图片按钮</b>，嗓子哑了、不想说话了，用手点一样能玩。
+            </dd>
+
+            <dt>它到底怎么判我家孩子说得对不对</dt>
+            <dd>
+              先在本机用一张同义词表判（下面每个环节都列了这张表在该环节的口径），
+              规则拿不准的时候，才把<b>原始录音</b>送给大模型裁决——每道题最多送两次。
+              判定有三种结果：<b>对</b>、<b>错</b>（听出他说了别的候选答案）、
+              <b>不确定</b>（一个候选词都没听到，按「没听清」处理，不算错次数）。
+              还有一条实用的规矩：<b>一句话里最后提到的那个词算数</b>，
+              所以孩子说「上面……不对，是下面！」会按「下面」判——自我纠正是被允许的。
+            </dd>
+
+            <dt class="卡点">口音、方言、含糊不清怎么办</dt>
+            <dd>
+              先别急着重说：让他<b>只说答案那两个字</b>，别带前后缀的长句子，识别率会明显上升。
+              还不行就等它自己亮出备选按钮（连续两次没听清就会亮），点着玩。
+              判定前系统会把「我觉得 / 应该 / 好像 / 就是 / 那个 / 这个 / 嗯 / 呃 / 啊 / 呀 / 吧 / 呢」这类口头语整段抹掉，
+              所以孩子说「嗯……我觉得应该是上面吧」是能判对的。
+            </dd>
+
+            <dt class="卡点">一个已知的坑：别说「东西」两个字</dt>
+            <dd>
+              「东西」在判定里被当成名词（什么东西）先抹掉了，抹在方位词之前。
+              所以孩子如果一口气答「东西边」或者想同时说两个方向，系统会判成「没听清」让他重说——
+              这是有意的，因为一道题只有一个正确方位。请引导他一次只说一个方向。
+            </dd>
+
+            <dt>星星和进度存在哪</dt>
+            <dd>
+              存在这台电脑这个浏览器的本地存储里（不联网、不上传、换电脑或换浏览器就没有）。
+              一个环节做完点亮一颗星，十四颗集齐会放满屏烟花和奖杯。
+              存不下的时候（无痕模式、存储满）网页<b>不会报错也不会中断</b>，孩子照样玩，只是这次不留档。
+              地图左下角那个灰色的 ↺ 是「重来」：<b>点第一下只是问你要不要清空</b>，
+              再点绿色的 ✔ 才真的清——两次点击是防孩子误触的，八秒不理它会自己收起来。
+            </dd>
+
+            <dt>中途退出、来回切换会丢东西吗</dt>
+            <dd>
+              星星不会丢。但<b>单个环节内部的进度不保存</b>：回地图再进来是从这个环节的开头重新讲一遍。
+              孩子玩到一半跑掉又回来是常事，这不算故障。
+            </dd>
+          </dl>
+        </div>
+
+        <!-- ---------------- 逐环节 ---------------- -->
+
+        <div class="帮助">
+          <h3><span class="序">01</span>🚀 出发啦<span class="固定">无题目</span></h3>
+          <dl>
+            <dt>怎么操作</dt>
+            <dd>纯演示，一分钟左右。全程不用点任何东西，也不考题。先出现礼物盒和六个方向的小伙伴，
+              再换成罗盘和「北南西东」四个字，最后念一遍口诀。讲完自动点亮星星并自己回到探险地图。</dd>
+            <dt>什么时候该说话</dt>
+            <dd>不需要开口。但念口诀那一句「上北下南，左西右东」值得您跟着一起念，
+              这是整讲后半段反复要用的东西。</dd>
+            <dt>口答判对口径</dt>
+            <dd>本环节不判对。</dd>
+            <dt>卡住了怎么办</dt>
+            <dd>不会卡。如果孩子中途点了回家按钮，演示会停在那里，下次进来从头讲。
+              重复听两三遍完全没问题，这一段本来就是打底的。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">02</span>🎁 礼物盒边的小伙伴<span class="随机">顺序随机</span></h3>
+          <dl>
+            <dt>怎么操作</dt>
+            <dd>
+              两个玩法接着来，共 12 小题。
+              <ul>
+                <li><b>前半「你说我猜」</b>：六只小动物围着礼物盒站好，机器逐个问「小猴子在礼物盒的哪一边？」，孩子开口答。被问到的那只会闪一下。</li>
+                <li><b>后半「我说你摆」</b>：六只小动物排到台子下面当托盘，盒子周围出现六个虚线圈。机器说「把小猫放到盒子的左边」，孩子<b>把它拖到对应的圈里</b>。</li>
+              </ul>
+              全程靠拖动，手指和鼠标都行。
+            </dd>
+            <dt>什么时候该说话</dt>
+            <dd>只有前半六题要开口。后半是纯拖动，不用说话，麦克风也用不上。</dd>
+            <dt>口答哪些说法算对</dt>
+            <dd>
+              <div class="口径">
+                <p><span class="词">上面</span>　<code>上面</code><code>上边</code><code>上头</code><code>上方</code><code>上</code></p>
+                <p><span class="词">下面</span>　<code>下面</code><code>下边</code><code>下头</code><code>下方</code><code>底下</code><code>下</code></p>
+                <p><span class="词">前面</span>　<code>前面</code><code>前边</code><code>前头</code><code>前方</code><code>前</code></p>
+                <p><span class="词">后面</span>　<code>后面</code><code>后边</code><code>后头</code><code>后方</code><code>背后</code><code>后</code></p>
+                <p><span class="词">左边</span>　<code>左边</code><code>左面</code><code>左侧</code><code>左</code></p>
+                <p><span class="词">右边</span>　<code>右边</code><code>右面</code><code>右侧</code><code>右</code></p>
+              </div>
+              <p>这六个词是这一环节的全部候选。说成别的（比如「旁边」「那儿」）算没听清，会让他重说。</p>
+            </dd>
+            <dt>卡住了怎么办</dt>
+            <dd>
+              <ul>
+                <li class="卡点"><b>分不清前 / 后</b>——这是本环节最常卡的一处。请指着屏幕说：站在<b>前面</b>的小熊把盒子挡住了一点点，而且个头最大（离我们最近）；躲在<b>后面</b>的小狐狸只露出小脑袋，个头最小、颜色也暗一点。</li>
+                <li><b>拖不进圈</b>——落点判定给了 8 像素的宽容，只要小动物的中心落在虚线圈附近就算。拖到别的圈里会有提示音，机器会告诉他那是哪一边、应该放在哪一边，可以一直重试，不会失败。</li>
+                <li>答错两次会自动高亮那只小动物并说一句具体的提示；第三次直接告诉答案。</li>
+              </ul>
+            </dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">03</span>🥕 小小冰箱管理员<span class="固定">题目固定</span></h3>
+          <dl>
+            <dt>怎么操作</dt>
+            <dd>
+              冰箱是 4 层 × 2 列的格子，共 13 小题。
+              <ul>
+                <li><b>前半「问答」</b>6 题：问两样东西的相对方位（「鸡蛋在西红柿的哪一面？」），或者问某个位置上是什么（「牛奶的下面是什么？」）。题目涉及的东西会亮起来。</li>
+                <li><b>后半「装冰箱」</b>7 步：冰箱清空只留鸡蛋，机器一条一条下指令——每一条都<b>参照上一个已经放好的东西</b>（「把洋葱放在西红柿的右边」），孩子拖进对应格子。</li>
+              </ul>
+            </dd>
+            <dt>什么时候该说话</dt>
+            <dd>只有前半 6 题开口。后半全是拖动。</dd>
+            <dt>口答哪些说法算对</dt>
+            <dd>
+              <p><b>方位题</b>（第 1、2、6 题）候选只有四个：<code>上面</code> <code>下面</code> <code>左边</code> <code>右边</code>，各自的说法同上一环节的表。</p>
+              <p><b>食物题</b>（第 3、4、5 题）要说食物名字，这些别名都算对：</p>
+              <div class="口径">
+                <p><span class="词">鸡蛋</span>　<code>鸡蛋</code><code>蛋蛋</code><code>蛋</code>　　<span class="词">牛奶</span>　<code>牛奶</code><code>奶</code></p>
+                <p><span class="词">西红柿</span>　<code>西红柿</code><code>番茄</code>　　<span class="词">洋葱</span>　<code>洋葱</code><code>葱头</code></p>
+                <p><span class="词">白菜</span>　<code>白菜</code><code>青菜</code><code>小白菜</code>　　<span class="词">茄子</span>　<code>茄子</code></p>
+                <p><span class="词">胡萝卜</span>　<code>胡萝卜</code><code>红萝卜</code><code>萝卜</code>　　<span class="词">豆角</span>　<code>豆角</code><code>豆豆</code><code>豆荚</code><code>豌豆</code></p>
+              </div>
+            </dd>
+            <dt>卡住了怎么办</dt>
+            <dd>
+              <ul>
+                <li>问答题答错两次，两样主角会再亮一次并给一句引导；第三次念答案。</li>
+                <li><b>装冰箱放错格子</b>——机器会区分两种错：格子里已经有东西了会说「那一格已经有东西啦」；放到空的错格子会把<b>参照物高亮</b>并重念一遍指令。可以无限次重试。</li>
+                <li class="卡点">孩子把「洋葱」说成「葱」不算对（只认<code>洋葱</code>和<code>葱头</code>）。如果他一直说单字，提醒他说全名。</li>
+              </ul>
+            </dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">04</span>🐿️ 森林点名<span class="随机">抽题随机</span></h3>
+          <dl>
+            <dt>怎么操作</dt>
+            <dd>
+              3 行 × 3 列九个树桩，每个树桩上蹲一只动物，位置固定。共 8 小题。
+              先有一段扫光小课：横着扫一排念「第 1 行」「第 2 行」「第 3 行」，
+              再竖着扫念「第 1 列」……然后开始。
+              <ul>
+                <li><b>前半「说行列」</b>4 题（从九只里随机抽）：问「小兔子坐在第几行、第几列？」，孩子开口答。</li>
+                <li><b>后半「点名游戏」</b>4 题（再随机抽）：机器喊「请点：第 2 行、第 3 列的小动物！」，孩子<b>点那个树桩</b>。</li>
+              </ul>
+            </dd>
+            <dt>什么时候该说话</dt>
+            <dd>只有前半 4 题开口。后半是点击。</dd>
+            <dt>口答哪些说法算对</dt>
+            <dd>
+              <p>行列题不看方位词，只从话里抽数字，宽容度很高。以下说法<b>都算对</b>（以第 2 行第 3 列为例）：</p>
+              <div class="口径">
+                <p><code>第二行第三列</code><code>第2行第3列</code><code>二行三列</code><code>2行3列</code><code>第二行、第三列</code></p>
+                <p>甚至只说两个数字：<code>二三</code><code>2 3</code>——两个光秃秃的数字按<b>先行后列</b>理解。</p>
+                <p>中文数字和阿拉伯数字等价；「两」按 2 算。自我纠正也可以：「第三行……不对，第二行第三列」按最后说的算。</p>
+              </div>
+              <p class="卡点"><b>行列说反就是错</b>（不是「没听清」），会走答错流程。这是有意的——说反了必须纠正。</p>
+            </dd>
+            <dt>卡住了怎么办</dt>
+            <dd>
+              <ul>
+                <li>说行列答错两次，机器会<b>把那一整行扫亮</b>并说「先横着数：它在第 X 行。再竖着数一数是第几列？」。</li>
+                <li>点名游戏点错两次，同样把目标那一行扫亮，并说「先找到第 X 行，再从左往右数 Y 个」。点错不限次数，一定能点到。</li>
+                <li class="卡点">孩子把行列说反是这一关的头号问题。给一句好记的：<b>「行」是横着的一条，像躺着；「列」是竖着的一条，像站着。</b>数行从上往下，数列从左往右。</li>
+              </ul>
+            </dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">05</span>🧭 魔法罗盘<span class="随机">抢答题随机</span></h3>
+          <dl>
+            <dt>怎么操作</dt>
+            <dd>
+              三步，进度点只记最后一步的 5 题。
+              <ul>
+                <li><b>第一步 生活罗盘</b>：托盘里八个<b>箭头</b>牌（⬆️ ↗️ ➡️ ↘️ ⬇️ ↙️ ⬅️ ↖️），罗盘上八个空圈。「上」那块<b>已经先摆好做示范</b>，剩下七块交给孩子。<b>操作是点选式，不是拖：先点一下牌选中它，再点一下要放的圈。</b>（对五岁的手比拖动友好。）</li>
+                <li><b>第二步 地图罗盘</b>：同样的八个圈，这回牌上是<b>方位字</b>（北 东北 东 东南 南 西南 西 西北），「北」先摆好做示范。摆之前机器会念一遍口诀。</li>
+                <li><b>第三步 指针急转弯</b>：罗盘指针旋转停在某个方位，孩子<b>开口抢答</b>那是什么方位。随机出 5 题。</li>
+              </ul>
+            </dd>
+            <dt>什么时候该说话</dt>
+            <dd>只有第三步的 5 道抢答题要开口。前两步全是点选。</dd>
+            <dt>口答哪些说法算对</dt>
+            <dd>
+              <div class="口径">
+                <p><span class="词">北</span>　<code>北</code><code>北边</code><code>北面</code><code>北方</code>　　<span class="词">南</span>　<code>南</code><code>南边</code><code>南面</code><code>南方</code></p>
+                <p><span class="词">东</span>　<code>东</code><code>东边</code><code>东面</code><code>东方</code>　　<span class="词">西</span>　<code>西</code><code>西边</code><code>西面</code><code>西方</code></p>
+                <p><span class="词">东北</span>　<code>东北</code><code>东北边</code><code>东北方</code><code>东北角</code><code>右上</code></p>
+                <p><span class="词">东南</span>　<code>东南</code><code>东南边</code><code>东南方</code><code>东南角</code><code>右下</code></p>
+                <p><span class="词">西北</span>　<code>西北</code><code>西北边</code><code>西北方</code><code>西北角</code><code>左上</code></p>
+                <p><span class="词">西南</span>　<code>西南</code><code>西南边</code><code>西南方</code><code>西南角</code><code>左下</code></p>
+              </div>
+              <p>斜方位的<b>生活说法（右上 / 右下 / 左上 / 左下）一样算对</b>——孩子还没把两套名字打通时，
+                先用他会的那套说也能过，这是有意留的口子。判定时长词优先，说「东北」不会被误判成「东」。</p>
+            </dd>
+            <dt>卡住了怎么办</dt>
+            <dd>
+              <ul>
+                <li>摆牌放错圈会有提示音和一句具体提示（生活罗盘说「靠上 / 靠下 / 靠左 / 靠右」，地图罗盘会重念口诀）。放错不限次数。</li>
+                <li>抢答答错两次：正方位提示「看看它旁边圈圈里的字，念出来」；斜方位提示「它在两个方向的中间，一个是 X，一个是 Y，连起来说」。</li>
+                <li class="卡点">如果孩子只会说「上下左右」不会说「东南西北」，先别急着纠正——让他先用生活说法过关（系统认），
+                  然后您自己把两套名字对着罗盘再说一遍。八个方位的对应关系见下一段答案区的对照表。</li>
+              </ul>
+            </dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">06</span>🏫 学校旁边有什么<span class="随机">抽 6 题随机</span></h3>
+          <dl>
+            <dt>怎么操作</dt>
+            <dd>
+              3 × 3 的小地图，正中间是学校，周围八格各有一个地方。四条边上标着「北 南 西 东」四个字。
+              先有<b>约 6 秒的自由探索</b>：摸到哪一栋就念出它的名字和方位 —— 鼠标划过去、
+              手指点上去都算。
+              然后进入考试（探索期结束后<b>再摸就不念了</b>，免得把答案报出来），随机抽 6 题，两种题型交替：
+              <ul>
+                <li>单数题问地点：「学校的东边是什么呀？」</li>
+                <li>双数题问方位：「医院在学校的哪个方向？」——问之前会把那一栋高亮。</li>
+              </ul>
+            </dd>
+            <dt>什么时候该说话</dt>
+            <dd>6 题全部要开口。自由探索期只要去摸，不用说话。</dd>
+            <dt>口答哪些说法算对</dt>
+            <dd>
+              <p><b>方位题</b>：口径同魔法罗盘（八方位全表，斜方位的「右上 / 左下」等生活说法也算对）。</p>
+              <p><b>地点题</b>：</p>
+              <div class="口径">
+                <p><span class="词">火车站</span>　<code>火车站</code><code>车站</code>　　<span class="词">加油站</span>　<code>加油站</code></p>
+                <p><span class="词">摩天轮</span>　<code>摩天轮</code><code>大转轮</code><code>游乐场</code>　　<span class="词">马戏团</span>　<code>马戏团</code><code>大帐篷</code></p>
+                <p><span class="词">公园</span>　<code>公园</code><code>大树</code>　　<span class="词">医院</span>　<code>医院</code></p>
+                <p><span class="词">面包店</span>　<code>面包店</code><code>面包房</code>　　<span class="词">消防局</span>　<code>消防局</code><code>消防车</code><code>消防站</code></p>
+              </div>
+            </dd>
+            <dt>卡住了怎么办</dt>
+            <dd>
+              <ul>
+                <li>地点题答错两次会<b>把那一栋高亮</b>并提示往哪边找；方位题答错两次会重念口诀。</li>
+                <li>自由探索只有一次、约 6 秒。想让孩子多摸一会儿，回地图重进这一关即可。</li>
+                <li class="卡点">四个斜角（东北 / 东南 / 西北 / 西南）是本关的难点。提示语已经在说「斜斜的角要说两个字」，
+                  您可以顺着补一句：<b>先看它靠上还是靠下，再看靠左还是靠右，上下的字说在前面</b>（上+右 = 东北）。</li>
+              </ul>
+            </dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">07</span>🧥 帮妈妈整理衣柜<span class="固定">8 条指令固定</span></h3>
+          <dl>
+            <dt>怎么操作</dt>
+            <dd>
+              纯拖动关，没有语音题。衣柜有三个区：上面一根<b>挂衣杆（5 个钩子）</b>、
+              右边<b>一竖列 4 格</b>、最下面<b>一横排 4 格</b>。
+              开局有两样东西<b>已经摆好当参照物</b>：帽子在右列从上数第 2 格，黑皮鞋在最下层从左数第 2 格。
+              其余 8 件在托盘里，机器一条一条念指令，孩子按指令拖。
+            </dd>
+            <dt>什么时候该说话</dt>
+            <dd>完全不用说话，麦克风这一关是收起来的。</dd>
+            <dt>口答判对口径</dt>
+            <dd>本环节没有口答题。</dd>
+            <dt>卡住了怎么办</dt>
+            <dd>
+              <ul>
+                <li>放到已经有东西的格子会说「那里已经放了东西啦」，不计错。</li>
+                <li>放到空的错格子：<b>第一次</b>重念一遍原指令；<b>第二次起</b>换成更具体的提示，
+                  并且如果这条指令有参照物（外套 / 帽子 / 黑皮鞋），会把参照物<b>高亮</b>。不限次数，一定放得进去。</li>
+                <li class="卡点">「第一个位置 / 最后一个位置 / 第三个格子」这类<b>序数</b>是本关真正的难点，
+                  比方位词更抽象。孩子卡住时，请带他<b>用手指点着从左边开始数出声</b>：一、二、三。</li>
+                <li>八条指令的完整对照表在下面的答案区。</li>
+              </ul>
+            </dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">08</span>🍌 水果小超市<span class="固定">题目固定</span></h3>
+          <dl>
+            <dt>怎么操作</dt>
+            <dd>
+              货架是 3 行 × 4 列，<b>行号和列号直接标在架子旁边</b>（第1行…第3行 / 第1列…第4列）。
+              开局已经摆好三样水果。共 8 小题：
+              <ul>
+                <li><b>前 6 题拖动</b>：「把香蕉放在第 1 行、第 1 列！」</li>
+                <li><b>后 2 题口答</b>：「第 3 行、第 1 列放的是什么水果？」——目标格会有蓝框框提示。</li>
+              </ul>
+            </dd>
+            <dt>什么时候该说话</dt>
+            <dd>只有最后 2 题要开口。</dd>
+            <dt>口答哪些说法算对</dt>
+            <dd>
+              <div class="口径">
+                <p><span class="词">蓝莓</span>　<code>蓝莓</code><code>蓝色的莓</code><code>蓝色果子</code>　　<span class="词">橘子</span>　<code>橘子</code><code>桔子</code><code>橙子</code></p>
+                <p><span class="词">樱桃</span>　<code>樱桃</code><code>车厘子</code>　　<span class="词">葡萄</span>　<code>葡萄</code><code>提子</code></p>
+                <p><span class="词">西瓜</span><span class="词">香蕉</span><span class="词">芒果</span><span class="词">草莓</span><span class="词">苹果</span>　只认本名，没有别名</p>
+              </div>
+            </dd>
+            <dt>卡住了怎么办</dt>
+            <dd>
+              <ul>
+                <li>拖错格子：第一次说「再数一数：第 X 行、第 Y 列」，第二次起说「先从上往下找到第 X 行，再从左往右数到第 Y 列」。</li>
+                <li>口答题答错两次会提示「顺着蓝框框看」；第三次直接念答案。</li>
+                <li class="卡点">货架有 12 格但只放 9 样水果，<b>会剩三个空格</b>（第 1 行第 3 列、第 2 行第 3 列、第 3 行第 4 列）。
+                  数格子时空格也要数进去，孩子容易跳过空格数——这是本关最常见的错。</li>
+              </ul>
+            </dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">09</span>🏘️ 去谁家做客<span class="固定">10 题固定顺序</span></h3>
+          <dl>
+            <dt>怎么操作</dt>
+            <dd>
+              4 行 × 3 列共 12 座小房子，每座住一只动物，位置固定。左上角有小罗盘标着北南西东。
+              10 道题，顺序固定：「松鼠往南边走一格，会到谁的家呀？」——孩子说动物名字。
+              答对后主角会<b>小跑一段</b>走到目的地演示给他看。
+            </dd>
+            <dt>什么时候该说话</dt>
+            <dd>10 题全部开口，这是纯语音关。</dd>
+            <dt>口答哪些说法算对</dt>
+            <dd>
+              <div class="口径">
+                <p><span class="词">松鼠</span>　<code>松鼠</code><code>小松鼠</code>　　<span class="词">长颈鹿</span>　<code>长颈鹿</code><code>小长颈鹿</code><code>鹿</code></p>
+                <p><span class="词">小鸟</span>　<code>小鸟</code><code>鸟</code><code>鸟儿</code>　　<span class="词">刺猬</span>　<code>刺猬</code><code>小刺猬</code></p>
+                <p><span class="词">小猪</span>　<code>小猪</code><code>猪</code><code>猪猪</code>　　<span class="词">奶牛</span>　<code>奶牛</code><code>牛</code><code>小牛</code></p>
+                <p><span class="词">蚂蚁</span>　<code>蚂蚁</code><code>小蚂蚁</code>　　<span class="词">狐狸</span>　<code>狐狸</code><code>小狐狸</code></p>
+                <p><span class="词">兔子</span>　<code>兔子</code><code>小兔子</code><code>小兔</code>　　<span class="词">小鸡</span>　<code>小鸡</code><code>鸡</code><code>小鸡仔</code></p>
+                <p><span class="词">青蛙</span>　<code>青蛙</code><code>小青蛙</code><code>蛙</code>　　<span class="词">小羊</span>　<code>小羊</code><code>羊</code><code>绵羊</code></p>
+              </div>
+              <p>这一关的别名给得很宽，加不加「小」都算对。</p>
+            </dd>
+            <dt>卡住了怎么办</dt>
+            <dd>
+              <ul>
+                <li>答错两次会高亮出发的那只动物并说「X 边就是上/下/左/右边！从它家往那边看一格」——
+                  这句话正是本关的教学核心：<b>把地图方位翻译回屏幕方向</b>。</li>
+                <li>第三次会高亮正确答案那座房子并念出来。</li>
+                <li class="卡点">孩子容易走错方向而不是认错动物。答错时先别问「是谁」，
+                  先带他把手指放在出发的房子上，问「北在哪边？」（往上），再一起往那边挪一格。</li>
+              </ul>
+            </dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">10</span>🚗 方向小司机<span class="固定">3 趟固定</span></h3>
+          <dl>
+            <dt>怎么操作</dt>
+            <dd>
+              小镇是 6 行 × 7 列的格子，深色的是路，浅色的是草地。小车从中间的路口出发，要送三趟客人。
+              孩子<b>喊「往东走！」小车就沿路一直开</b>，直到路口、死胡同或目的地才停——
+              喊一声看车跑一段，不是一格一格挪。
+              旁边有<b>四个方向按钮（北 南 西 东）</b>，嗓子累了、听不清了用手点一样能开。
+              语音和按钮是同时开着的，谁先来听谁的。
+            </dd>
+            <dt>什么时候该说话</dt>
+            <dd>每次小车停下来等指令时都可以说。说的是<b>指令</b>不是答案，说错了不算答错，只是车开不动或者往回绕。</dd>
+            <dt>口答哪些说法算对</dt>
+            <dd>
+              <p>只认四个正方位，<b>斜方位在这一关不识别</b>：</p>
+              <div class="口径">
+                <p><code>北 / 北边 / 北面 / 北方</code>　<code>南 / 南边 / 南面 / 南方</code>　<code>西 / 西边 / 西面 / 西方</code>　<code>东 / 东边 / 东面 / 东方</code></p>
+                <p>前后加词都行：<code>往东走</code><code>往东边开</code><code>东！</code> 都能识别出「东」。</p>
+              </div>
+            </dd>
+            <dt>卡住了怎么办</dt>
+            <dd>
+              <ul>
+                <li>说了一个没路的方向：会说「往 X 没有路呀！看看路往哪边弯！」，不罚不扣，重说就行。</li>
+                <li>连续 6 次没收到声音，机器会主动提醒「也可以点旁边的方向按钮哦」。</li>
+                <li>说的话里找不到方向词：会说「我没听懂，说『往东走』这样的话，或者点方向按钮」。</li>
+                <li class="卡点">这一关<b>没有三次机会的兜底</b>——车不到目的地就一直等指令。
+                  如果孩子彻底绕晕了，请直接用方向按钮帮他开一两步，或者照着下面答案区的参考路线念给他听。</li>
+                <li class="卡点">按钮上印着「北南西东」四个字，孩子不认字也没关系：<b>按钮是按北在上的十字排的</b>，
+                  位置本身就是提示。</li>
+              </ul>
+            </dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">11</span>📷 给小鸭拍照<span class="随机">出示顺序随机</span></h3>
+          <dl>
+            <dt>怎么操作</dt>
+            <dd>
+              这是全讲唯一的 3D 关。桌子中间站一只戴厨师帽的小鸭，四个小朋友（红红 蓝蓝 黄黄 绿绿）围坐四边，
+              画布四边各有一个对应的小朋友按钮（按钮位置就是他在 3D 里坐的方向）。
+              <ul>
+                <li><b>前 15 秒自由探索</b>：点哪个小朋友，镜头就飞到他的座位，让孩子看到<b>那个座位看到的小鸭</b>。</li>
+                <li><b>然后猜照片</b>：四张照片一字排开，逐张问「这张照片是谁拍的？」，孩子<b>点那个小朋友的按钮</b>。</li>
+              </ul>
+              四张照片是同一个 3D 场景从四个座位真实渲染出来的，所以照片和座位看到的永远一致。
+            </dd>
+            <dt>什么时候该说话</dt>
+            <dd>完全不用说话，全程点击。</dd>
+            <dt>口答判对口径</dt>
+            <dd>本环节没有口答题。</dd>
+            <dt>卡住了怎么办</dt>
+            <dd>
+              <ul>
+                <li>点错第 1 次：提示「照片里小鸭的嘴巴朝哪边？帽子呢？」</li>
+                <li>点错第 2 次：<b>镜头真的飞到他刚点的那个座位</b>停一会儿再飞回来，让他自己比一比。这是本关最好用的一招。</li>
+                <li>点错第 3 次起：把正确的小朋友按钮高亮出来。</li>
+                <li class="卡点"><b>视角转换在五岁基本还没成熟，答错是正常的，别当成没学会。</b>
+                  最有效的辅助是把关注点收窄到一个特征上：<b>只看鸭嘴朝哪边</b>。四张照片的分辨要点在下面答案区。</li>
+              </ul>
+            </dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">12</span>💎 挖宝藏<span class="固定">3 关固定</span></h3>
+          <dl>
+            <dt>怎么操作</dt>
+            <dd>
+              5 × 5 的沙滩格子，上面有三个地标：海盗船（左下）、棕榈树（右上）、大石头（右下）。左上角有小罗盘。
+              机器念一条<b>多步线索</b>（「从海盗船出发，往北走 2 格，宝藏就埋在那里！挖！」），
+              孩子听完<b>点那一格</b>开挖。三关分别是 1 步、2 步、3 步，逐关变难。
+              右边有个 🔁 按钮，<b>随时可以重听线索</b>——这一关线索长，这个按钮很有用。
+            </dd>
+            <dt>什么时候该说话</dt>
+            <dd>完全不用说话，全程点击。</dd>
+            <dt>口答判对口径</dt>
+            <dd>本环节没有口答题。</dd>
+            <dt>卡住了怎么办</dt>
+            <dd>
+              <ul>
+                <li>挖错第 1 次：那一格出现一个坑，并重念一遍线索。</li>
+                <li>挖错第 2 次：<b>放脚印演示</b>——一格一格把正确路线走给他看，走完说「脚印停在哪儿，宝藏就在哪儿」。</li>
+                <li>挖错第 3 次起：直接把目标格高亮。挖不完的次数，一定挖得到。</li>
+                <li class="卡点">第三关有三步（西 2 → 北 3 → 东 1），五岁孩子记不住三步是正常的。
+                  请教他<b>一步一步来</b>：先点 🔁 听第一步，用手指点到那一格停住，再听第二步。不要指望一遍记全。</li>
+              </ul>
+            </dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">13</span>🌳 谁躲在哪儿<span class="随机">全随机</span></h3>
+          <dl>
+            <dt>怎么操作</dt>
+            <dd>
+              空间记忆关。一棵大树，四只小动物分别站在树的上面、下面、左边、右边（<b>每轮的动物和站位都随机</b>）。
+              看约 5 秒（有沙漏倒数），然后<b>全部躲进花丛</b>，机器问「小鸟刚才在大树的哪边？」。
+              共 3 轮，前两轮各问 1 只，最后一轮问 2 只，一共 4 题。答完那朵花丛会翻开揭晓。
+            </dd>
+            <dt>什么时候该说话</dt>
+            <dd>4 题全部开口。看的时候不用说话，但<b>建议让他一边看一边小声说出来</b>（「小鸟在上面」），
+              念出来记得牢得多。</dd>
+            <dt>口答哪些说法算对</dt>
+            <dd>
+              <p>候选只有四个：<code>上面</code> <code>下面</code> <code>左边</code> <code>右边</code>，各自的说法见环节 02 的完整表。</p>
+            </dd>
+            <dt>卡住了怎么办</dt>
+            <dd>
+              <ul>
+                <li>答错两次会提示「闭上眼睛想一想：小鸟是在树的头顶上，脚底下，还是旁边？」——
+                  先二选一缩小范围（上下 / 左右），是很好用的策略。</li>
+                <li>第三次告诉答案并进入下一轮。</li>
+                <li class="卡点">因为完全随机，<b>这一关没有固定答案可查</b>——揭晓时花丛会翻开给您看。
+                  记不住不是数学问题是记忆容量问题，玩两三遍自然会好。</li>
+              </ul>
+            </dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">14</span>🐲 空间大冒险<span class="随机">题型固定 / 每题随机</span></h3>
+          <dl>
+            <dt>怎么操作</dt>
+            <dd>
+              压轴关。小龙守着独木桥，出<b>六道混合题</b>，答对一道桥就亮一块板、小龙退一步，
+              六块全亮小龙飞走、放大烟花。六道题的<b>题型是固定的，具体内容每次随机</b>：
+              <ol>
+                <li>方位：小鸟在礼物盒的哪一边（上下左右四选一）</li>
+                <li>行列：星星在第几行第几列（3×3）</li>
+                <li>罗盘：大箭头指着哪个方位（八方位）</li>
+                <li>地图：冰激凌店在城堡的哪个方向（八方位）</li>
+                <li>走格子：从中间的小熊往某方向走一格是谁</li>
+                <li>记忆：气球只飞 3 秒，它刚才在大山的哪一边</li>
+              </ol>
+            </dd>
+            <dt>什么时候该说话</dt>
+            <dd>六道全部开口。第 6 题要先<b>安静看 3 秒</b>再问。</dd>
+            <dt>口答哪些说法算对</dt>
+            <dd>
+              <p>第 1、6 题用四方位表；第 2 题用行列数字规则；第 3、4 题用八方位全表（斜方位的生活说法也认）。</p>
+              <p><b>第 5 题要特别注意</b>——动物阵里的九个名字<b>只认本名，一个别名都没有</b>：</p>
+              <div class="口径">
+                <p><code>小猫</code><code>小狗</code><code>小兔</code><code>狐狸</code><code>小熊</code><code>熊猫</code><code>青蛙</code><code>小鸡</code><code>奶牛</code></p>
+              </div>
+              <p class="卡点">说「小狐狸」「猫」「兔子」都会被判成<b>没听清</b>让他重说。
+                这是本关唯一的口径陷阱，孩子卡在这里时请直接告诉他：<b>说屏幕上那只动物的名字，两个字</b>。</p>
+            </dd>
+            <dt>卡住了怎么办</dt>
+            <dd>
+              <ul>
+                <li>第 2、3、4、5 题都有自己的提示语，答错第三次会说「答案是 X。小龙看你这么努力，也让你过这一块」——
+                  <b>六道题一定都能过</b>，不存在通不了关。</li>
+                <li>第 6 题是记忆题，气球只出现 3 秒，请提醒孩子<b>盯着屏幕别说话</b>。</li>
+                <li>建议把这一关留到最后玩。如果孩子在某一道上反复卡住，那道对应的单项环节值得回去重玩一遍
+                  （题 1→礼物盒、题 2→森林点名、题 3→魔法罗盘、题 4→学校地图、题 5→去谁家做客、题 6→谁躲在哪儿）。</li>
+              </ul>
+            </dd>
+          </dl>
+        </div>
+
+        <p class="回顶"><a href="#顶">↑ 回到顶部</a></p>
+      </section>
+
+      <!-- ================================================================ 三、各环节答案 -->
+      <section class="大段" id="答案">
+        <h2>三、各环节答案</h2>
+        <p class="段引">
+          以下是网页各环节的题目与答案，与环节里的题目数据逐题核对一致。
+          标<span class="固定">固定</span>的每次玩都一样；标<span class="随机">随机</span>的每次抽题不同，
+          但布局固定，照着布局表可以推出任意一题的答案。
+        </p>
+
+        <h3>01　🚀 出发啦</h3>
+        <p>纯演示，没有题目。</p>
+
+        <h3>02　🎁 礼物盒边的小伙伴<span class="随机">出题顺序随机</span></h3>
+        <p>六只小动物的位置<b>固定</b>，只有出题顺序随机。前半问「谁在哪一边」、后半让孩子摆回同样的位置，答案都是这张表。</p>
+        <table>
+          <caption>礼物盒周围的六个位置（共 12 小题：6 问 + 6 摆）</caption>
+          <thead><tr><th>小伙伴</th><th>在礼物盒的</th><th>屏幕上的样子</th></tr></thead>
+          <tbody>
+            <tr><td>🐵 小猴子</td><td class="答">上面</td><td>盒子正上方</td></tr>
+            <tr><td>🐰 小兔子</td><td class="答">下面</td><td>盒子正下方</td></tr>
+            <tr><td>🐻 小熊</td><td class="答">前面</td><td>压在盒子前下方，个头最大，挡住了盒子一角</td></tr>
+            <tr><td>🦊 小狐狸</td><td class="答">后面</td><td>躲在盒子后面只露上半身，个头最小、颜色略暗</td></tr>
+            <tr><td>🐱 小猫</td><td class="答">左边</td><td>盒子左侧</td></tr>
+            <tr><td>🐶 小狗</td><td class="答">右边</td><td>盒子右侧</td></tr>
+          </tbody>
+        </table>
+
+        <h3>03　🥕 小小冰箱管理员<span class="固定">全部固定</span></h3>
+        <p>冰箱 4 层 × 2 列，摆放固定如下（第 1 层在最上面）：</p>
+        <table class="摆盘">
+          <caption>冰箱布局</caption>
+          <thead><tr><th></th><th>左列</th><th>右列</th></tr></thead>
+          <tbody>
+            <tr><th>第 1 层</th><td>🥚 鸡蛋</td><td>🥛 牛奶</td></tr>
+            <tr><th>第 2 层</th><td>🍅 西红柿</td><td>🧅 洋葱</td></tr>
+            <tr><th>第 3 层</th><td>🥬 白菜</td><td>🍆 茄子</td></tr>
+            <tr><th>第 4 层</th><td>🥕 胡萝卜</td><td>🫛 豆角</td></tr>
+          </tbody>
+        </table>
+        <table>
+          <caption>前半 · 问答 6 题（顺序固定）</caption>
+          <thead><tr><th style="width:3em">题</th><th>题目</th><th style="width:8em">答案</th></tr></thead>
+          <tbody>
+            <tr><td class="格">1</td><td>鸡蛋在西红柿的哪一面？</td><td class="答">上面</td></tr>
+            <tr><td class="格">2</td><td>西红柿在洋葱的哪一边？</td><td class="答">左边</td></tr>
+            <tr><td class="格">3</td><td>牛奶的下面是什么？</td><td class="答">洋葱</td></tr>
+            <tr><td class="格">4</td><td>豆角的上面是什么？</td><td class="答">茄子</td></tr>
+            <tr><td class="格">5</td><td>鸡蛋的右边是什么？</td><td class="答">牛奶</td></tr>
+            <tr><td class="格">6</td><td>胡萝卜在白菜的哪一面？</td><td class="答">下面</td></tr>
+          </tbody>
+        </table>
+        <table>
+          <caption>后半 · 装冰箱 7 步（顺序固定，鸡蛋开局已放好在第 1 层左列）</caption>
+          <thead><tr><th style="width:3em">步</th><th>指令</th><th style="width:10em">该放进哪一格</th></tr></thead>
+          <tbody>
+            <tr><td class="格">1</td><td>把牛奶放在鸡蛋的右边</td><td class="答">第 1 层右列</td></tr>
+            <tr><td class="格">2</td><td>把西红柿放在鸡蛋的下面</td><td class="答">第 2 层左列</td></tr>
+            <tr><td class="格">3</td><td>把洋葱放在西红柿的右边</td><td class="答">第 2 层右列</td></tr>
+            <tr><td class="格">4</td><td>把白菜放在西红柿的下面</td><td class="答">第 3 层左列</td></tr>
+            <tr><td class="格">5</td><td>把茄子放在洋葱的下面</td><td class="答">第 3 层右列</td></tr>
+            <tr><td class="格">6</td><td>把胡萝卜放在白菜的下面</td><td class="答">第 4 层左列</td></tr>
+            <tr><td class="格">7</td><td>把豆角放在茄子的下面</td><td class="答">第 4 层右列</td></tr>
+          </tbody>
+        </table>
+
+        <h3>04　🐿️ 森林点名<span class="随机">每次抽 4 + 4 题</span></h3>
+        <p>九个树桩的<b>位置固定</b>。前半随机抽 4 只问「第几行第几列」，后半随机抽 4 只让孩子点，答案都查这张表。</p>
+        <table class="摆盘">
+          <caption>3 × 3 树桩布局（行从上往下数，列从左往右数）</caption>
+          <thead><tr><th></th><th>第 1 列</th><th>第 2 列</th><th>第 3 列</th></tr></thead>
+          <tbody>
+            <tr><th>第 1 行</th><td>🐿️ 小松鼠</td><td>🐰 小兔子</td><td>🐑 小绵羊</td></tr>
+            <tr><th>第 2 行</th><td>🦊 小狐狸</td><td>🐔 大公鸡</td><td>🐷 小猪</td></tr>
+            <tr><th>第 3 行</th><td>🐸 小青蛙</td><td>🐭 小老鼠</td><td>🐮 小奶牛</td></tr>
+          </tbody>
+        </table>
+
+        <h3>05　🧭 魔法罗盘<span class="随机">抢答 5 题随机</span></h3>
+        <p>摆盘的答案是<b>固定</b>的（就是罗盘的八个方向），指针急转弯从八方位里随机抽 5 题。下表两栏也正是这一讲要打通的两套名字：</p>
+        <table>
+          <caption>八个方向的两套名字（口诀：上北下南，左西右东）</caption>
+          <thead><tr><th>罗盘上的位置</th><th>生活罗盘（第一步的箭头）</th><th>地图罗盘（第二步的字）</th></tr></thead>
+          <tbody>
+            <tr><td>正上</td><td>⬆️ 上　<span style="color:#8a6410">（示范块，开局已摆好）</span></td><td class="答">北</td></tr>
+            <tr><td>右上角</td><td>↗️ 右上</td><td class="答">东北</td></tr>
+            <tr><td>正右</td><td>➡️ 右</td><td class="答">东</td></tr>
+            <tr><td>右下角</td><td>↘️ 右下</td><td class="答">东南</td></tr>
+            <tr><td>正下</td><td>⬇️ 下</td><td class="答">南</td></tr>
+            <tr><td>左下角</td><td>↙️ 左下</td><td class="答">西南</td></tr>
+            <tr><td>正左</td><td>⬅️ 左</td><td class="答">西</td></tr>
+            <tr><td>左上角</td><td>↖️ 左上</td><td class="答">西北</td></tr>
+          </tbody>
+        </table>
+        <p>指针急转弯：指针停在哪个方向，答案就是这张表里对应的<b>地图名字</b>（生活名字也算对）。</p>
+
+        <h3>06　🏫 学校旁边有什么<span class="随机">每次抽 6 题</span></h3>
+        <p>八个地点的<b>位置固定</b>，每次从中随机抽 6 个出题（一半问地点、一半问方位），答案都查这张表。</p>
+        <table class="摆盘">
+          <caption>学校周边地图（上北下南、左西右东，学校在正中间）</caption>
+          <thead><tr><th></th><th>西</th><th>中</th><th>东</th></tr></thead>
+          <tbody>
+            <tr><th>北</th><td>🚒 消防局<br><b>西北</b></td><td>🚉 火车站<br><b>北</b></td><td>⛽ 加油站<br><b>东北</b></td></tr>
+            <tr><th>中</th><td>🍞 面包店<br><b>西</b></td><td>🏫 学校</td><td>🎡 摩天轮<br><b>东</b></td></tr>
+            <tr><th>南</th><td>🏥 医院<br><b>西南</b></td><td>🌳 公园<br><b>南</b></td><td>🎪 马戏团<br><b>东南</b></td></tr>
+          </tbody>
+        </table>
+        <table>
+          <caption>换成一问一答的形式（两种题型的答案是互为反面的同一件事）</caption>
+          <thead><tr><th>学校的这个方向……</th><th>是什么</th><th>反过来问</th></tr></thead>
+          <tbody>
+            <tr><td>北边</td><td class="答">火车站</td><td>火车站在学校的<b>北</b>边</td></tr>
+            <tr><td>东北边</td><td class="答">加油站</td><td>加油站在学校的<b>东北</b>边</td></tr>
+            <tr><td>东边</td><td class="答">摩天轮</td><td>摩天轮在学校的<b>东</b>边</td></tr>
+            <tr><td>东南边</td><td class="答">马戏团</td><td>马戏团在学校的<b>东南</b>边</td></tr>
+            <tr><td>南边</td><td class="答">公园</td><td>公园在学校的<b>南</b>边</td></tr>
+            <tr><td>西南边</td><td class="答">医院</td><td>医院在学校的<b>西南</b>边</td></tr>
+            <tr><td>西边</td><td class="答">面包店</td><td>面包店在学校的<b>西</b>边</td></tr>
+            <tr><td>西北边</td><td class="答">消防局</td><td>消防局在学校的<b>西北</b>边</td></tr>
+          </tbody>
+        </table>
+
+        <h3>07　🧥 帮妈妈整理衣柜<span class="固定">8 条固定顺序</span></h3>
+        <p>衣柜结构：上面一根挂衣杆有 5 个钩子（从左往右数第 1～5）；右边一竖列 4 格（从上往下：右上、右中1、右中2、右下）；最下面一横排 4 格（从左往右第 1～4）。</p>
+        <p><b>开局已经摆好的参照物：</b>🎩 帽子在右列<b>从上数第 2 格</b>（右中1）、👞 黑皮鞋在最下层<b>从左数第 2 格</b>。</p>
+        <table>
+          <caption>八条指令与正确位置（顺序固定）</caption>
+          <thead><tr><th style="width:3em">条</th><th>指令</th><th style="width:14em">该放哪</th></tr></thead>
+          <tbody>
+            <tr><td class="格">1</td><td>把外套挂在挂衣杆的第一个位置</td><td class="答">挂衣杆最左边的钩子（第 1 个）</td></tr>
+            <tr><td class="格">2</td><td>把衬衫挂在外套的右边</td><td class="答">挂衣杆第 2 个钩子</td></tr>
+            <tr><td class="格">3</td><td>把毛衣挂在挂衣杆最后一个位置</td><td class="答">挂衣杆最右边的钩子（第 5 个）</td></tr>
+            <tr><td class="格">4</td><td>把礼物盒放在柜子的右下角</td><td class="答">右列最下面那格</td></tr>
+            <tr><td class="格">5</td><td>把书包放在柜子最上边的格子里</td><td class="答">右列最上面那格</td></tr>
+            <tr><td class="格">6</td><td>把马甲放在帽子的下边</td><td class="答">右列从上数第 3 格（帽子正下方）</td></tr>
+            <tr><td class="格">7</td><td>把拖鞋放在黑皮鞋的左边</td><td class="答">最下层从左数第 1 格</td></tr>
+            <tr><td class="格">8</td><td>把靴子放在最下层，从左往右数第三个格子</td><td class="答">最下层从左数第 3 格</td></tr>
+          </tbody>
+        </table>
+        <p>八条做完，衣柜最终的样子是：挂衣杆<b>外套 · 衬衫 · 空 · 空 · 毛衣</b>；
+          右列自上而下<b>书包 · 帽子 · 马甲 · 礼物盒</b>；最下层自左向右<b>拖鞋 · 黑皮鞋 · 靴子 · 空</b>。</p>
+
+        <h3>08　🍌 水果小超市<span class="固定">全部固定</span></h3>
+        <table class="摆盘">
+          <caption>货架最终布局（3 行 × 4 列；粗体的三样是开局已经摆好的）</caption>
+          <thead><tr><th></th><th>第 1 列</th><th>第 2 列</th><th>第 3 列</th><th>第 4 列</th></tr></thead>
+          <tbody>
+            <tr><th>第 1 行</th><td>🍌 香蕉</td><td>🍒 樱桃</td><td class="空格">（空）</td><td>🍇 葡萄</td></tr>
+            <tr><th>第 2 行</th><td>🥭 芒果</td><td><b>🍊 橘子</b></td><td class="空格">（空）</td><td>🍓 草莓</td></tr>
+            <tr><th>第 3 行</th><td><b>🫐 蓝莓</b></td><td>🍎 苹果</td><td><b>🍉 西瓜</b></td><td class="空格">（空）</td></tr>
+          </tbody>
+        </table>
+        <table>
+          <caption>前半 · 拖水果 6 题（顺序固定）</caption>
+          <thead><tr><th style="width:3em">题</th><th>指令</th><th style="width:10em">位置</th></tr></thead>
+          <tbody>
+            <tr><td class="格">1</td><td>把香蕉放在第 1 行、第 1 列</td><td class="答">1 行 1 列</td></tr>
+            <tr><td class="格">2</td><td>把樱桃放在第 1 行、第 2 列</td><td class="答">1 行 2 列</td></tr>
+            <tr><td class="格">3</td><td>把葡萄放在第 1 行、第 4 列</td><td class="答">1 行 4 列</td></tr>
+            <tr><td class="格">4</td><td>把芒果放在第 2 行、第 1 列</td><td class="答">2 行 1 列</td></tr>
+            <tr><td class="格">5</td><td>把草莓放在第 2 行、第 4 列</td><td class="答">2 行 4 列</td></tr>
+            <tr><td class="格">6</td><td>把苹果放在第 3 行、第 2 列</td><td class="答">3 行 2 列</td></tr>
+          </tbody>
+        </table>
+        <table>
+          <caption>后半 · 口答 2 题（顺序固定）</caption>
+          <thead><tr><th style="width:3em">题</th><th>题目</th><th style="width:8em">答案</th></tr></thead>
+          <tbody>
+            <tr><td class="格">1</td><td>第 3 行、第 1 列放的是什么水果？</td><td class="答">蓝莓</td></tr>
+            <tr><td class="格">2</td><td>第 2 行、第 2 列放的是什么水果？</td><td class="答">橘子</td></tr>
+          </tbody>
+        </table>
+
+        <h3>09　🏘️ 去谁家做客<span class="固定">10 题固定顺序</span></h3>
+        <table class="摆盘">
+          <caption>村子布局（4 行 × 3 列；上北下南、左西右东）</caption>
+          <thead><tr><th></th><th>西</th><th>中</th><th>东</th></tr></thead>
+          <tbody>
+            <tr><th>最北一排</th><td>🐿️ 松鼠</td><td>🦒 长颈鹿</td><td>🐦 小鸟</td></tr>
+            <tr><th>第二排</th><td>🦔 刺猬</td><td>🐷 小猪</td><td>🐮 奶牛</td></tr>
+            <tr><th>第三排</th><td>🐜 蚂蚁</td><td>🦊 狐狸</td><td>🐰 兔子</td></tr>
+            <tr><th>最南一排</th><td>🐔 小鸡</td><td>🐸 青蛙</td><td>🐑 小羊</td></tr>
+          </tbody>
+        </table>
+        <table>
+          <caption>十道题（顺序固定，每题都是「走一格」）</caption>
+          <thead><tr><th style="width:3em">题</th><th>题目</th><th style="width:8em">答案</th></tr></thead>
+          <tbody>
+            <tr><td class="格">1</td><td>松鼠往南边走一格，会到谁的家？</td><td class="答">刺猬</td></tr>
+            <tr><td class="格">2</td><td>松鼠往东边走一格，会到谁的家？</td><td class="答">长颈鹿</td></tr>
+            <tr><td class="格">3</td><td>小鸟往南边走一格，会到谁的家？</td><td class="答">奶牛</td></tr>
+            <tr><td class="格">4</td><td>小鸟往西边走一格，会到谁的家？</td><td class="答">长颈鹿</td></tr>
+            <tr><td class="格">5</td><td>小鸡往北边走一格，会到谁的家？</td><td class="答">蚂蚁</td></tr>
+            <tr><td class="格">6</td><td>小鸡往东边走一格，会到谁的家？</td><td class="答">青蛙</td></tr>
+            <tr><td class="格">7</td><td>小羊往北边走一格，会到谁的家？</td><td class="答">兔子</td></tr>
+            <tr><td class="格">8</td><td>小羊往西边走一格，会到谁的家？</td><td class="答">青蛙</td></tr>
+            <tr><td class="格">9</td><td>小猪往东边走一格，会到谁的家？</td><td class="答">奶牛</td></tr>
+            <tr><td class="格">10</td><td>狐狸往西边走一格，会到谁的家？</td><td class="答">蚂蚁</td></tr>
+          </tbody>
+        </table>
+
+        <h3>10　🚗 方向小司机<span class="固定">3 趟固定</span></h3>
+        <p>
+          小车从小镇正中偏左的一个路口出发，依次送三趟：<b>猫猫家 🐱 → 游乐园 🎡 → 博物馆 🏛️</b>。
+          「答案」不是唯一的（怎么绕都行，只要到得了），下面给的是<b>最短的一条参考路线</b>——
+          孩子彻底绕晕时，照着念给他听，或者直接帮他点方向按钮。
+        </p>
+        <table>
+          <caption>参考路线（每喊一次，小车会沿着这个方向一直开到下一个路口才停）</caption>
+          <thead><tr><th style="width:4em">第几趟</th><th>目的地</th><th>喊话顺序</th></tr></thead>
+          <tbody>
+            <tr><td class="格">第 1 趟</td><td>🐱 猫猫家（小镇东北那条横路的最右端）</td><td class="答">往北走 → 往东走</td></tr>
+            <tr><td class="格">第 2 趟</td><td>🎡 游乐园（小镇最北边那条支路的顶端）</td><td class="答">往西走 → 往北走</td></tr>
+            <tr><td class="格">第 3 趟</td><td>🏛️ 博物馆（小镇南边）</td><td class="答">往南走 → 往南走 → 往东走 → 往南走</td></tr>
+          </tbody>
+        </table>
+        <p>喊了没路的方向不算错，只会听到「往 X 没有路呀」，重喊即可。</p>
+
+        <h3>11　📷 给小鸭拍照<span class="随机">出示顺序随机</span></h3>
+        <p>
+          四张照片对应四个座位，<b>对应关系固定</b>，只有出示顺序随机。
+          小鸭子<b>脸朝着红红</b>（也就是屏幕最下方那个座位）。四张照片这样分辨：
+        </p>
+        <table>
+          <caption>照片是谁拍的</caption>
+          <thead><tr><th style="width:7em">照片里的小鸭</th><th style="width:9em">是谁拍的</th><th>那个小朋友的按钮在哪</th></tr></thead>
+          <tbody>
+            <tr><td>正脸朝你——看得见嘴巴、两只眼睛和厨师帽的正面</td><td class="答">🔴 红红</td><td>画面<b>下方</b>（南边）</td></tr>
+            <tr><td>只看得见背影和尾巴，看不到嘴</td><td class="答">🟡 黄黄</td><td>画面<b>上方</b>（北边）</td></tr>
+            <tr><td>侧面，嘴巴朝<b>画面左侧</b></td><td class="答">🔵 蓝蓝</td><td>画面<b>右侧</b>（东边）</td></tr>
+            <tr><td>侧面，嘴巴朝<b>画面右侧</b></td><td class="答">🟢 绿绿</td><td>画面<b>左侧</b>（西边）</td></tr>
+          </tbody>
+        </table>
+        <p class="卡点">
+          注意两张侧面照最容易搞混，而且方向是「反」的：<b>坐在右边的蓝蓝，拍到的鸭嘴朝左</b>。
+          这正是本关要教的东西，讲不通就用点错两次后的「坐过去比一比」演示，比讲道理管用。
+        </p>
+
+        <h3>12　💎 挖宝藏<span class="固定">3 关固定</span></h3>
+        <p>沙滩是 5 × 5 的格子。三个地标的位置：🏴‍☠️ 海盗船在<b>最下面一排的最左</b>格、🌴 棕榈树在<b>最上面一排的最右</b>格、🪨 大石头在<b>最下面一排的最右</b>格。</p>
+        <table>
+          <caption>三关的线索与该挖哪一格</caption>
+          <thead><tr><th style="width:3em">关</th><th>线索</th><th style="width:16em">该点的格子</th><th style="width:5em">挖到</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="格">1</td>
+              <td>从<b>海盗船</b>出发，往北走 2 格</td>
+              <td class="答">最左边那一列，从下往上数第 3 格<br><span style="font-weight:400;color:#61727f">（＝从上往下数第 3 行、最左一列）</span></td>
+              <td>💰 金币</td>
+            </tr>
+            <tr>
+              <td class="格">2</td>
+              <td>从<b>棕榈树</b>出发，往南走 2 格，再往西走 1 格</td>
+              <td class="答">从上往下数第 3 行、从左往右数第 4 列<br><span style="font-weight:400;color:#61727f">（＝正中间那一行，右数第 2 格）</span></td>
+              <td>💎 大钻石</td>
+            </tr>
+            <tr>
+              <td class="格">3</td>
+              <td>从<b>大石头</b>出发，往西走 2 格，再往北走 3 格，再往东走 1 格</td>
+              <td class="答">从上往下数第 2 行、从左往右数第 4 列</td>
+              <td>👑 皇冠</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>13　🌳 谁躲在哪儿<span class="随机">全随机，无固定答案</span></h3>
+        <p>
+          每一轮的四只动物和它们的站位<b>都是随机抽的</b>，所以没有固定答案表。
+          答案就是孩子刚才亲眼看到的那一幕：动物站在大树的<b>上面 / 下面 / 左边 / 右边</b> 四选一。
+          答完题那朵花丛会翻开，把刚才藏在那儿的动物露出来——那就是标准答案。
+          共 3 轮 4 题（第 1、2 轮各 1 题，第 3 轮 2 题）。
+        </p>
+
+        <h3>14　🐲 空间大冒险<span class="随机">题型固定 / 内容随机</span></h3>
+        <p>六道题的<b>顺序和类型固定</b>，具体内容每次随机，所以答案要现场看屏幕。下面给的是每一道的答案在哪儿看：</p>
+        <table>
+          <caption>六道题的答案口径</caption>
+          <thead><tr><th style="width:3em">题</th><th style="width:7em">类型</th><th>题目与答案怎么看</th></tr></thead>
+          <tbody>
+            <tr><td class="格">1</td><td>方位</td><td>「小鸟在礼物盒的哪一边？」——小鸟随机出现在盒子的上 / 下 / 左 / 右，答案就是它出现的那一边（四选一）。</td></tr>
+            <tr><td class="格">2</td><td>行列</td><td>「星星在第几行、第几列？」——3 × 3 的空网格里随机亮一颗 ⭐。行从上往下数、列从左往右数。</td></tr>
+            <tr><td class="格">3</td><td>罗盘</td><td>「大箭头指着哪个方位？」——罗盘上标着北南西东四个字，大箭头随机指向八方位之一。斜的要说两个字（如东北）。</td></tr>
+            <tr><td class="格">4</td><td>地图</td><td>「冰激凌店 🍦 在城堡 🏰 的哪个方向？」——城堡固定在 3 × 3 的正中间，冰激凌店随机出现在周围八格之一。上北下南、左西右东。</td></tr>
+            <tr><td class="格">5</td><td>走格子</td><td>「从中间的小熊往 X 走一格，是谁呀？」——动物阵布局<b>固定</b>，见下表，只有方向随机。</td></tr>
+            <tr><td class="格">6</td><td>记忆</td><td>「气球 🎈 刚才在大山 ⛰️ 的哪一边？」——气球在山的上 / 下 / 左 / 右随机出现，只显示 3 秒就消失。</td></tr>
+          </tbody>
+        </table>
+        <table class="摆盘">
+          <caption>第 5 题的动物阵（布局固定，出发点永远是正中间的小熊）</caption>
+          <thead><tr><th></th><th>左</th><th>中</th><th>右</th></tr></thead>
+          <tbody>
+            <tr><th>上（北）</th><td>🐱 小猫</td><td>🐶 小狗</td><td>🐰 小兔</td></tr>
+            <tr><th>中</th><td>🦊 狐狸</td><td>🐻 小熊<b>（出发点）</b></td><td>🐼 熊猫</td></tr>
+            <tr><th>下（南）</th><td>🐸 青蛙</td><td>🐤 小鸡</td><td>🐮 奶牛</td></tr>
+          </tbody>
+        </table>
+        <table>
+          <caption>第 5 题的四个可能答案</caption>
+          <thead><tr><th>往这个方向走一格</th><th>答案</th></tr></thead>
+          <tbody>
+            <tr><td>往<b>北</b>（上）</td><td class="答">小狗</td></tr>
+            <tr><td>往<b>南</b>（下）</td><td class="答">小鸡</td></tr>
+            <tr><td>往<b>西</b>（左）</td><td class="答">狐狸</td></tr>
+            <tr><td>往<b>东</b>（右）</td><td class="答">熊猫</td></tr>
+          </tbody>
+        </table>
+        <p class="卡点">再提醒一次：这一题只认<b>本名</b>——说「小狐狸」不算，要说「狐狸」；说「兔子」不算，要说「小兔」。</p>
+
+        <p class="回顶"><a href="#顶">↑ 回到顶部</a></p>
+      </section>
+
+      <footer class="脚注">
+        <p>
+          本页内容 100% 原创撰写，不含任何教材扫描图或教材原文；所有答案均取自本网站各环节自己的题目数据。
+          <b>网页题目改动后，这一页要跟着改。</b>
+        </p>
+        <p>对应书页：第 26–36 页　·　这一页是给家长看的，孩子界面上的入口刻意做得很不显眼。</p>
+      </footer>
+    </div>
+  </body>
+</html>

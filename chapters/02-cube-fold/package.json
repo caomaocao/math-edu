@@ -1,0 +1,10 @@
+{
+  "name": "cube-fold",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "配套教材第2讲《拆装正方体》的互动网站。运行时不需要 node —— 这个 package.json 只给单元测试用。",
+  "scripts": {
+    "test": "node --test \"test/*.test.js\""
+  }
+}

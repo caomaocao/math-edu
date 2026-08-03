@@ -1,0 +1,7 @@
+{
+  "name": "math-edu",
+  "private": true,
+  "scripts": {
+    "test": "node --import ./tools/共享路径.mjs --test \"chapters/*/test/*.test.js\" \"web/shared/test/*.test.js\""
+  }
+}

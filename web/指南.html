@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>使用指南 · 大班数学</title>
+    <style>
+      /* 站级使用指南 —— 给陪孩子坐下来的大人看的说明书。
+         和家长伴读页分工不同：伴读页答「这一讲教什么、答案是什么」，这一页答
+         「这个网站怎么用、出问题怎么办」，与讲无关，全站只有一页。
+
+         三件事和这个仓库里别的页面不一样，都是有意的：
+         1. 只有中文。语言开关是孩子那门课的开关，不是给大人的；这一页不出现旗子。
+         2. 零脚本、零外部资源。语音后端整个挂掉时，这一页仍然打得开——排障说明
+            在最需要它的时候必须还在。
+         3. 版式是说明书，不是散文：大序号、大图标、每步一句话。家长伴读页那种
+            长滚动的「纸张」风在这儿反而不好用——出问题的人是来查的，不是来读的。
+
+         插图一律用站里那套 UI 图形（🎤🔊🏡🇨🇳🇬🇧⭐🏆↺）加 CSS 仿的几个真控件，
+         不放截图：引用的是操作约定，不是像素，UI 微调不会让说明书说谎。 */
+
+      :root {
+        --墨: #1f2b38;
+        --淡墨: #61707f;
+        --纸: #ffffff;
+        --底: #eef1f5;
+        --线: #d3dae2;
+        --粗线: #1f2b38;
+        --蓝: #2f6f9f;
+        --蓝浅: #eaf2f9;
+        --琥珀: #b8791a;
+        --琥珀浅: #fdf4e3;
+        --阴: rgba(31, 43, 56, 0.09);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        background: var(--底);
+        color: var(--墨);
+        font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+        font-size: 17px;
+        line-height: 1.7;
+        /* 关掉 iOS 的自动放大字：竖屏转横屏时 WebKit 会自己把整段正文加大一档，
+           说明书那套「大序号、小注解」的层级当场就乱了。 */
+        -webkit-text-size-adjust: 100%;
+      }
+
+      .纸 {
+        max-width: 880px;
+        margin: 0 auto;
+        padding: 0 0 96px;
+        background: var(--纸);
+        min-height: 100vh;
+        /* 手机上的 100vh 按「工具栏收起」算，短页面因此凭空多出一截可滚；dvh 量的是
+           眼下真看得见的那块。不认 dvh 的浏览器停在上一行，效果和以前一样。 */
+        min-height: 100dvh;
+        box-shadow: 0 0 40px var(--阴);
+      }
+
+      /* ---------------- 封面条 ---------------- */
+
+      /* 说明书的封面：厚重、方正，一眼和站内别的页面区分开 */
+      .封面 {
+        padding: 34px 44px 30px;
+        border-bottom: 4px solid var(--粗线);
+      }
+
+      .回家 {
+        display: inline-block;
+        font-size: 15px;
+        color: var(--蓝);
+        text-decoration: none;
+        margin-bottom: 14px;
+      }
+      /* 悬停一律进 @media (hover: hover)（本页三处，都在这一块里）：手指点过的链接会把
+         hover 粘在原地不散，一页排障看下来能留下五六个「看着像刚点过」的假高亮。 */
+      @media (hover: hover) {
+        .回家:hover { text-decoration: underline; }
+        .速查 a:hover { border-color: var(--蓝); color: var(--蓝); }
+        .伴读:hover { border-color: var(--蓝); background: var(--蓝浅); }
+      }
+
+      .封面 .眉 {
+        margin: 0;
+        font-size: 14px;
+        letter-spacing: 0.16em;
+        color: var(--淡墨);
+      }
+
+      .封面 h1 {
+        margin: 4px 0 10px;
+        font-size: 40px;
+        line-height: 1.15;
+        letter-spacing: 0.02em;
+      }
+
+      .封面 .定位 {
+        margin: 0;
+        font-size: 16.5px;
+        color: var(--淡墨);
+        max-width: 44em;
+      }
+
+      /* ---------------- 速查条 ---------------- */
+
+      /* 出问题的人是来查的：四段入口摆在最上面，一步跳到排障那段 */
+      .速查 {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 18px 44px;
+        border-bottom: 1px solid var(--线);
+        background: #f8fafc;
+      }
+
+      .速查 a {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border: 1.5px solid var(--线);
+        border-radius: 999px;
+        background: var(--纸);
+        color: var(--墨);
+        font-size: 15px;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .速查 a .号 { color: var(--淡墨); font-weight: 700; }
+      .速查 a.要紧 { border-color: var(--琥珀); background: var(--琥珀浅); color: var(--琥珀); }
+      .速查 a.要紧 .号 { color: var(--琥珀); }
+
+      /* ---------------- 段 ---------------- */
+
+      section.段 { padding: 40px 44px 0; scroll-margin-top: 12px; }
+
+      section.段 > h2 {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin: 0 0 6px;
+        font-size: 26px;
+        line-height: 1.2;
+      }
+
+      /* 大序号：说明书的骨架，方块 + 粗数字，扫一眼就知道走到第几步 */
+      section.段 > h2 .序 {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        flex: none;
+        border-radius: 8px;
+        background: var(--粗线);
+        color: #fff;
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      section.段 > .段引 {
+        margin: 0 0 22px 58px;
+        color: var(--淡墨);
+        font-size: 15.5px;
+      }
+
+      /* ---------------- 步骤卡 ---------------- */
+
+      .卡组 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 14px;
+      }
+
+      .卡组.隔一行 { margin-top: 18px; }
+
+      .卡 {
+        display: flex;
+        gap: 14px;
+        padding: 18px;
+        border: 1.5px solid var(--线);
+        border-radius: 10px;
+        background: var(--纸);
+      }
+
+      /* 图标格：大、方、居中。图标就是孩子屏幕上那个图标，不是插画 */
+      .卡 .图 {
+        flex: none;
+        width: 52px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        background: var(--蓝浅);
+        font-size: 30px;
+        line-height: 1;
+      }
+
+      /* 仿控件自带尺寸和配色，所以不走上面那个固定的图标格，另开一个不设框的位置 */
+      .卡 .图件 { flex: none; align-self: flex-start; }
+
+      /* 用 > 限定层级：卡里句子中间还会再出现 <b> 做重点，那个必须留在行内 */
+      .卡 .话 { min-width: 0; }
+      .卡 .话 > b { display: block; font-size: 16.5px; margin-bottom: 2px; }
+      .卡 .话 > span { display: block; color: var(--淡墨); font-size: 15px; }
+
+      .卡.当心 { border-color: var(--琥珀); background: var(--琥珀浅); }
+      .卡.当心 .图 { background: #f7e6c4; }
+
+      /* ---------------- 四步 ---------------- */
+
+      ol.步骤 { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+      ol.步骤 > li { display: flex; gap: 14px; align-items: flex-start; }
+
+      .步号 {
+        flex: none;
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        border: 1.5px solid var(--蓝);
+        background: var(--蓝浅);
+        color: var(--蓝);
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      ol.步骤 .话 > b { display: block; font-size: 16.5px; }
+      ol.步骤 .话 > span { display: block; color: var(--淡墨); font-size: 15px; }
+
+      /* ---------------- 仿控件 ---------------- */
+
+      /* 图例里那几个控件是 CSS 照着真样式仿的，不是截图。截图会随 UI 过期，
+         而且教材扫描件是不进仓库的版权内容——说明书宁可画得抽象一点。
+         仿件用的是孩子屏幕上的浅色配色，深色模式下当色样看，不跟着翻。 */
+      .仿 { display: inline-flex; align-items: center; vertical-align: middle; }
+
+      .仿旗 { gap: 2px; padding: 3px; border-radius: 999px; background: #eef2f7; box-shadow: 0 2px 8px var(--阴); }
+      .仿旗 span { padding: 3px 8px; border-radius: 999px; font-size: 17px; line-height: 1; opacity: 0.4; }
+      .仿旗 span.选中 { background: #fff; opacity: 1; }
+
+      .仿家长 {
+        padding: 4px 12px;
+        border-radius: 999px;
+        background: #fff;
+        border: 1.5px solid #b8c6d4;
+        color: #3b556e;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+      }
+
+      .仿麦 {
+        width: 42px;
+        height: 42px;
+        justify-content: center;
+        border-radius: 50%;
+        background: #3f8fd0;
+        color: #fff;
+        font-size: 20px;
+        box-shadow: 0 3px 10px rgba(31, 45, 61, 0.25);
+      }
+
+      .仿重来 {
+        padding: 4px 12px;
+        border-radius: 999px;
+        border: 1.5px solid #b8c6d4;
+        background: #fff;
+        color: #61707f;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      /* ---------------- 排障表 ---------------- */
+
+      /* 三栏固定为「现象 → 原因 → 怎么办」：大人手上只有现象，得按现象查 */
+      table.排障 {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 15.5px;
+      }
+
+      table.排障 th {
+        text-align: left;
+        padding: 10px 14px;
+        background: #f8fafc;
+        border-bottom: 2px solid var(--粗线);
+        font-size: 14px;
+        letter-spacing: 0.08em;
+        color: var(--淡墨);
+      }
+
+      table.排障 td {
+        padding: 14px;
+        border-bottom: 1px solid var(--线);
+        vertical-align: top;
+      }
+
+      table.排障 td.现象 { font-weight: 600; width: 26%; }
+      table.排障 td.现象 .图标 { margin-right: 6px; }
+
+      /* ---------------- 页尾 ---------------- */
+
+      .页尾 {
+        margin-top: 52px;
+        padding: 32px 44px 0;
+        border-top: 3px solid var(--粗线);
+      }
+
+      .页尾 h2 { margin: 0 0 4px; font-size: 21px; }
+      .页尾 .说 { margin: 0 0 18px; color: var(--淡墨); font-size: 15.5px; }
+
+      .伴读组 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+
+      .伴读 {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border: 1.5px solid var(--线);
+        border-radius: 10px;
+        text-decoration: none;
+        color: var(--墨);
+        background: var(--纸);
+      }
+      .伴读 .图 { flex: none; font-size: 26px; line-height: 1; }
+      .伴读 .话 { min-width: 0; }
+      .伴读 .话 b { display: block; font-size: 16px; }
+      .伴读 .话 .细 { display: block; font-size: 14px; color: var(--淡墨); }
+
+      /* ---------------- 窄屏 ---------------- */
+
+      @media (max-width: 640px) {
+        body { font-size: 16px; }
+        .封面 { padding: 24px 20px 22px; }
+        .封面 h1 { font-size: 30px; }
+        /* 一行字的链接在手机上只有 25px 高，够不上一根手指。撑到 40 出头，
+           省下来的那点距离从下边距里扣回去，版面看着还是原样。 */
+        .回家 { padding: 8px 0; margin-bottom: 6px; }
+        .速查 { padding: 14px 20px; }
+        section.段 { padding: 30px 20px 0; }
+        section.段 > .段引 { margin-left: 0; }
+        .页尾 { padding: 26px 20px 0; }
+
+        /* 窄屏把三栏摞起来，但「现象」必须还是入口：它排第一、加粗、带图标，
+           另外两栏各自标上名字，免得摞完之后分不清哪句是原因哪句是办法。 */
+        table.排障, table.排障 tbody, table.排障 tr, table.排障 td { display: block; width: auto; }
+        table.排障 thead { display: none; }
+        table.排障 tr {
+          border: 1.5px solid var(--线);
+          border-radius: 10px;
+          padding: 6px 4px;
+          margin-bottom: 12px;
+        }
+        table.排障 td { border-bottom: none; padding: 8px 12px; }
+        table.排障 td.现象 { width: auto; font-size: 17px; }
+        table.排障 td:not(.现象)::before {
+          display: block;
+          font-size: 13px;
+          letter-spacing: 0.08em;
+          color: var(--淡墨);
+        }
+        table.排障 td.因::before { content: "多半是因为"; }
+        table.排障 td.办::before { content: "怎么办"; }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --墨: #e7edf3;
+          --淡墨: #9fb0c0;
+          --纸: #161d26;
+          --底: #0e131a;
+          --线: #33404f;
+          --粗线: #8fa5ba;
+          --蓝: #7db6e0;
+          --蓝浅: #1d2a36;
+          --琥珀: #e0b163;
+          --琥珀浅: #2a2318;
+          --阴: rgba(0, 0, 0, 0.5);
+        }
+        .速查 { background: #121922; }
+        section.段 > h2 .序 { background: var(--粗线); color: #0e131a; }
+        table.排障 th { background: #121922; }
+        .卡.当心 .图 { background: #3a2f18; }
+      }
+
+      @media print {
+        body { background: #fff; }
+        .纸 { box-shadow: none; max-width: none; }
+        .速查, .回家 { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="纸">
+      <header class="封面">
+        <a class="回家" href="/">← 回首页</a>
+        <p class="眉">大班数学 · 陪读的大人看这里</p>
+        <h1>使用指南</h1>
+        <p class="定位">
+          孩子那边全靠听：题目是念出来的，答案是说出来的。这一页是给你的——网站怎么用，
+          还有出了问题怎么办。
+        </p>
+      </header>
+
+      <nav class="速查">
+        <a href="#开始之前"><span class="号">1</span>开始之前</a>
+        <a href="#怎么走"><span class="号">2</span>一次会话怎么走</a>
+        <a href="#图形"><span class="号">3</span>图形对照表</a>
+        <a class="要紧" href="#排障"><span class="号">4</span>出问题怎么办</a>
+      </nav>
+
+      <section class="段" id="开始之前">
+        <h2><span class="序">1</span>开始之前</h2>
+        <p class="段引">设备、浏览器、网址，还有第一次会弹出来的那两个授权框。</p>
+        <div class="卡组">
+          <div class="卡">
+            <span class="图">🖱️</span>
+            <span class="话">
+              <b>电脑、手机、平板都能玩</b>
+              <span>鼠标点和手指点一样算，不用装任何东西。</span>
+            </span>
+          </div>
+          <div class="卡 当心">
+            <span class="图">📱</span>
+            <span class="话">
+              <b>手机上把屏幕横过来</b>
+              <span>孩子那两讲竖着塞不下。竖着拿会盖上一层「把手机横过来」的动画，转过来就在原地接着玩，什么都不丢。这一页和家长伴读页竖着读就行。</span>
+            </span>
+          </div>
+          <div class="卡">
+            <span class="图">🌐</span>
+            <span class="话">
+              <b>浏览器用 Chrome 或 Edge</b>
+              <span>别的现代浏览器一般也行。</span>
+            </span>
+          </div>
+          <div class="卡">
+            <span class="图">🔑</span>
+            <span class="话">
+              <b>网上打开会先要账号密码</b>
+              <span>那是网站自己的门，不是被盗号了。密码问家里管这台机器的人。</span>
+            </span>
+          </div>
+          <div class="卡">
+            <span class="图">💻</span>
+            <span class="话">
+              <b>在自己电脑上跑</b>
+              <span>地址栏输 <b>localhost:8300</b>，不用账号密码。</span>
+            </span>
+          </div>
+          <div class="卡">
+            <span class="图">🎤</span>
+            <span class="话">
+              <b>会问「允许使用麦克风」</b>
+              <span>点 <b>允许</b>。孩子要用嘴回答，拒绝了就一直没反应。</span>
+            </span>
+          </div>
+          <div class="卡">
+            <span class="图">📷</span>
+            <span class="话">
+              <b>只有第 2 讲会问摄像头</b>
+              <span>在「做一件真的」那一关，孩子把折好的纸盒举给它看。别处都不开摄像头。</span>
+            </span>
+          </div>
+          <div class="卡 当心">
+            <span class="图">⚠️</span>
+            <span class="话">
+              <b>第 3 讲那个「拍照」不用摄像头</b>
+              <span>名字容易误会——它是看颜色说方位，用的是麦克风。别等一个不会出现的弹窗。</span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="段" id="怎么走">
+        <h2><span class="序">2</span>一次会话怎么走</h2>
+        <p class="段引">从挑一讲到通关，一共四步；以及「往回退」到底退到哪儿。</p>
+        <ol class="步骤">
+          <li>
+            <span class="步号">1</span>
+            <div class="话"><b>在首页点一张卡片</b><span>一张卡片就是一讲。</span></div>
+          </li>
+          <li>
+            <span class="步号">2</span>
+            <div class="话"><b>在关卡地图上挑一关</b><span>一讲里有好几关，想先玩哪关都行。</span></div>
+          </li>
+          <li>
+            <span class="步号">3</span>
+            <div class="话">
+              <b>听题，然后动手或者开口答</b>
+              <span>题目是念出来的。屏幕上几乎没有字——孩子还不认字，这是故意的，不是没加载出来。</span>
+            </div>
+          </li>
+          <li>
+            <span class="步号">4</span>
+            <div class="话"><b>答对攒 ⭐，一关全过给 🏆</b><span>想换一关，点 🏡 退回地图。</span></div>
+          </li>
+        </ol>
+        <div class="卡组 隔一行">
+          <div class="卡">
+            <span class="图">🏡</span>
+            <span class="话">
+              <b>🏡 和浏览器的后退键都是「往上退一层」</b>
+              <span>关里退回地图，地图退回首页。不是退出网站，放心按。</span>
+            </span>
+          </div>
+          <div class="卡 当心">
+            <span class="图">🗣️</span>
+            <span class="话">
+              <b>让孩子自己说出来</b>
+              <span>该开口的时候别替他点鼠标——这些关卡就是练「把想法讲出来」的。</span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="段" id="图形">
+        <h2><span class="序">3</span>图形对照表</h2>
+        <p class="段引">屏幕上每个图形是什么意思、按下去会发生什么。</p>
+        <div class="卡组">
+          <div class="卡">
+            <span class="图件 仿 仿麦">🎤</span>
+            <span class="话">
+              <b>该说话了</b>
+              <span>亮起来就是在等孩子开口。孩子说完它自己就收了。</span>
+            </span>
+          </div>
+          <div class="卡">
+            <span class="图">🔊</span>
+            <span class="话">
+              <b>再念一遍</b>
+              <span>只是重听题目，<b>不会</b>把这一题重做，放心点。</span>
+            </span>
+          </div>
+          <div class="卡">
+            <span class="图件 仿 仿旗"><span class="选中">🇨🇳</span><span>🇬🇧</span></span>
+            <span class="话">
+              <b>中文课 / 英文课</b>
+              <span>点一下就换，<b>不动任何进度</b>。英文那边是一门平行的英文课，不是中文课配英文旁白。</span>
+            </span>
+          </div>
+          <div class="卡">
+            <span class="图件 仿 仿家长">家长</span>
+            <span class="话">
+              <b>这一讲的家长伴读页</b>
+              <span>教什么、怎么提示、答案是什么，都在里面。首页每张卡片右上角也有一个。</span>
+            </span>
+          </div>
+          <div class="卡 当心">
+            <span class="图件 仿 仿重来">↺ 重来</span>
+            <span class="话">
+              <b>清空这一讲的进度</b>
+              <span>星星会全部归零。<b>要点两下</b>才生效——点第一下只是问你「真的吗」，误碰不要紧。</span>
+            </span>
+          </div>
+          <div class="卡">
+            <span class="图">🏡</span>
+            <span class="话">
+              <b>往上退一层</b>
+              <span>关里退回地图，地图退回首页。</span>
+            </span>
+          </div>
+          <div class="卡">
+            <span class="图">⭐</span>
+            <span class="话">
+              <b>答对一题</b>
+              <span>攒够就通关。</span>
+            </span>
+          </div>
+          <div class="卡">
+            <span class="图">🏆</span>
+            <span class="话">
+              <b>这一关全过了</b>
+              <span>值得夸一句。</span>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="段" id="排障">
+        <h2><span class="序">4</span>出问题怎么办</h2>
+        <p class="段引">按你看到的<b>现象</b>查——不用先弄懂原理。</p>
+        <table class="排障">
+          <thead>
+            <tr>
+              <th>看到的现象</th>
+              <th>多半是因为</th>
+              <th>怎么办</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="现象"><span class="图标">🔇</span>一点声音都没有</td>
+              <td class="因">电脑静音了；或者念题的声音服务连不上，网站自动换成了浏览器自带的声音。</td>
+              <td class="办">先看电脑音量和标签页有没有被静音。<b>声音变得不一样了不等于坏了</b>——那是备用嗓子在念，题还是那道题，可以照玩。</td>
+            </tr>
+            <tr>
+              <td class="现象"><span class="图标">🎤</span>点了话筒没反应</td>
+              <td class="因">浏览器的麦克风权限被拒过一次；或者网址栏上没有 🔒。</td>
+              <td class="办">点地址栏左边那个图标，把麦克风改成「允许」，刷新。<b>没有 🔒 的话麦克风是不出声不报错地失效的</b>——换成带 🔒 的网址再试。（自己电脑上的 localhost 不用管有没有锁，它本来就算安全的。）</td>
+            </tr>
+            <tr>
+              <td class="现象"><span class="图标">⭐</span>星星和进度都没了</td>
+              <td class="因">网上版登录后，进度会跟着账号走、在设备间合并；没登录或自己电脑上的离线版，进度只存在这台浏览器里。</td>
+              <td class="办"><b>登录着的话星星会自己回来</b>——换设备打开、登录同一个手机号，稍等一下另一台攒的星星就合过来了（只增不减）。要是本来就没登录（或用的是自己电脑上的离线版），那进度只在这台浏览器里，换机/清数据会从头开始，这是正常的，不是把成绩弄丢了。</td>
+            </tr>
+            <tr>
+              <td class="现象"><span class="图标">🔑</span>又让我登录了一次</td>
+              <td class="因">会话很久没用过期了，或换了设备/浏览器/清过数据。正常情况下登录一次能管大半年。</td>
+              <td class="办">用手机号收条短信验证码重新登录就行，星星不受影响、会跟着账号回来。<b>孩子正上着课突然要登录别慌</b>：多半是极偶发的过期，刷新后按提示登录，进度都在云上。</td>
+            </tr>
+            <tr>
+              <td class="现象"><span class="图标">📩</span>收不到短信验证码</td>
+              <td class="因">新手机号第一次用要填邀请码才发得出；或者发得太勤被限了频（一分钟一条、一小时五条）。</td>
+              <td class="办">第一次用这个手机号，先在「邀请码」栏填上你手里的邀请码再点发送（老号留空即可）。提示「发得太勤」就等一会儿再发。图形验证过 5 条短信后要重新点一次图形验证。</td>
+            </tr>
+            <tr>
+              <td class="现象"><span class="图标">📷</span>摄像头一片黑（只有第 2 讲有）</td>
+              <td class="因">摄像头权限被拒；或者同样没有 🔒。</td>
+              <td class="办">和上面麦克风那条一模一样的做法：地址栏图标里改成「允许」，刷新。两种授权记一套办法就够。</td>
+            </tr>
+            <tr>
+              <td class="现象"><span class="图标">📱</span>手机上盖着一台转来转去的手机</td>
+              <td class="因">你竖着拿手机进了讲。孩子那两讲只做了横屏。</td>
+              <td class="办">把手机横过来，罩子自己就撤了，<b>原地接着玩</b>。横过来还不撤的话，看一眼是不是开了「竖屏锁定」。这一页和家长伴读页不拦，竖着读。</td>
+            </tr>
+            <tr>
+              <td class="现象"><span class="图标">🔄</span>画面怪怪的、按钮点不动</td>
+              <td class="因">多半是页面卡住了。</td>
+              <td class="办">先刷新一次。刷新不丢进度，放心按。</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <footer class="页尾">
+        <h2>每一讲的家长伴读页</h2>
+        <p class="说">想知道某一讲教什么、孩子卡住了怎么提示、答案是什么，从这里进：</p>
+        <div class="伴读组">
+<!--家长页-->
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

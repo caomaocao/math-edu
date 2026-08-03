@@ -1,0 +1,222 @@
+/* ===========================================================================
+   麦克风坞 —— 全站唯一那只麦克风的长相。
+
+   结构由 /shared/js/问答.js 生成（.麦克风坞 / .重听钮 / .麦钮 / .光环 /
+   .麦脸 / .备选行 / .备选钮），这份文件只管它长什么样。
+
+   从前第2讲第3讲各存一份，已经开始漂：按钮大小、配色、有没有滑入滑出
+   全都对不上，改一处不会传到另一处。搬到这儿来是让「坞」这个部件
+   只有一份长相；第4讲直接 <link> 一行就有。
+
+   **这份文件是自足的**：自带关键帧（坞心跳/坞转圈/坞冒出来），
+   不引用任何宿主章节碰巧定义了的 @keyframes。共享件依赖宿主的私有名字，
+   是那种一换章节就悄悄失效、还没人看得出来的毛病。
+
+   颜色留了钩子，各讲按自己的调色板覆盖就行（不覆盖就是这儿的天蓝）：
+     --坞按钮亮 / --坞按钮暗 / --坞按钮影   麦克风大钮的渐变和厚度
+     --坞纸 / --坞软影                       小钮的底色和投影
+   =========================================================================== */
+
+.麦克风坞挂点 {
+  position: fixed;
+  left: 50%;
+  /* 离地多高。屏幕底部正中是块抢手地，各讲底下可能还压着别的东西
+     （第2讲拉出折叠滑块时就压着），需要时把 --坞离地 调高让坞自己抬上去 */
+  bottom: var(--坞离地, 18px);
+  transform: translateX(-50%);
+  z-index: 50;
+  transition:
+    transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2),
+    bottom 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.2),
+    opacity 0.2s ease;
+}
+
+/* 用不着的时候整只滑下去 —— 和面板一样只是藏起来，不从文档里拿掉，
+   不然坞里那些 onclick（谁借着这只麦克风）会跟着没掉 */
+.麦克风坞挂点.收着 {
+  transform: translateX(-50%) translateY(160%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.麦克风坞 {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.麦克风坞.睡着 {
+  display: none;
+}
+
+/* 🔊 再念一遍题目。从前的 64px 在手机上缩放完只剩指甲盖那么大，而「再听一遍」正是
+   听不懂时唯一的自救办法，按不着等于没有。80px 见方 + 一圈隐形热区（markup 里挂的 热区
+   类）—— 热区是按舞台系数反向补偿的，不管缩多小都稳稳多出 20pt 左右，所以这儿够到底线。
+   旁边就是大麦钮，热区会盖住它左边沿一丝：那两个钮误按的代价是「又听一遍题」，
+   跟按错答案不是一个量级，可以让。答案那一排不能这么办，见下面 .备选钮。
+   尺寸比大麦钮的 96px 仍小一圈：哪个是主角一眼还是看得出来。 */
+.重听钮 {
+  /* 同 .麦钮 的折算（那儿有为什么）。它另有一圈热区兜着，所以物理下限取得比大麦钮低一点，
+     仍旧比 44pt 有余量 —— 主次一眼还是分得出来。 */
+  width: max(80px, 46px / var(--舞台系数, 1));
+  height: max(80px, 46px / var(--舞台系数, 1));
+  border: none;
+  border-radius: 50%;
+  font-size: 34px;
+  cursor: pointer;
+  background: var(--坞纸, rgba(255, 255, 255, 0.94));
+  box-shadow: var(--坞软影, 0 10px 26px rgba(43, 51, 82, 0.18));
+  transition: transform 0.14s ease;
+}
+
+/* hover 在这儿纯粹是装饰，所以关进 hover: hover 里：触屏上点一下的 hover 会一直粘着
+   不散，孩子看见的是这个钮按下去就再没起来。真正表示「按到了」的是 :active。 */
+@media (hover: hover) {
+  .重听钮:hover {
+    transform: scale(1.1) rotate(-20deg);
+  }
+}
+
+/*
+  🎤 孩子要按的那个大钮。做得比一般按钮大一圈：五岁的手不稳。
+
+  尺寸写成 `max(设计尺寸, 物理尺寸 ÷ 舞台系数)` —— 这一份是两讲共用的，而两讲的基准高
+  不一样（第3讲 842、第2讲另算），同一个舞台像素数在两边落成的**物理**大小就不一样。
+  与其在共享件里挑一讲的系数硬写，不如让 CSS 自己按 --舞台系数（/shared/js/舞台.js 写在
+  :root 上，没装舞台的页面是 1）折算：除完永远是那么多物理点，第4讲拿什么基准高都不用回来改。
+  外面套 max() 是因为系数在大显示器上会大于 1，光除会把钮缩到比设计稿还小 ——
+  设计尺寸是地板，物理下限是另一条地板，取高的那条。
+*/
+.麦钮 {
+  position: relative;
+  width: max(96px, 52px / var(--舞台系数, 1));
+  height: max(96px, 52px / var(--舞台系数, 1));
+  border: none;
+  border-radius: 50%;
+  font-size: 40px;
+  cursor: pointer;
+  color: white;
+  background: linear-gradient(var(--坞按钮亮, #63c8f2), var(--坞按钮暗, #3a9ad9));
+  box-shadow:
+    0 10px 0 var(--坞按钮影, #2f7cb0),
+    var(--坞软影, 0 16px 34px rgba(53, 72, 94, 0.24));
+}
+
+/* 按下去真的矮一截 —— 孩子得看得见「我按到了」 */
+.麦钮:active {
+  transform: translateY(6px);
+  box-shadow: 0 4px 0 var(--坞按钮影, #2f7cb0);
+}
+
+/* 轮到孩子说话了，钮自己轻轻跳 —— 界面上不写字，这就是「该你了」 */
+.麦克风坞.待命 .麦钮 {
+  animation: 坞心跳 1.8s ease-in-out infinite;
+}
+
+/* 录音时跟着孩子的音量一起胀缩 —— 他看得见「我说话它在听」 */
+.光环 {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 4px solid rgba(255, 255, 255, 0.85);
+  transform: scale(calc(0.9 + var(--响, 0) * 0.45));
+  opacity: 0;
+  transition: transform 0.08s linear;
+}
+
+/* 正在录：钮变成暖红的，跟待命的冷色一眼分得开 */
+.麦克风坞.录音中 .麦钮 {
+  background: linear-gradient(#ff9d8a, #f2604e);
+  box-shadow:
+    0 10px 0 #c74534,
+    var(--坞软影, 0 16px 34px rgba(242, 96, 78, 0.28));
+}
+
+.麦克风坞.录音中 .光环 {
+  opacity: 1;
+}
+
+/* 正在想（送去转写）：麦克风自己转圈，别让孩子以为卡住了 */
+.麦克风坞.想想中 .麦脸 {
+  display: inline-block;
+  animation: 坞转圈 1s linear infinite;
+}
+
+/* 听不清两次以后冒出来的图片按钮：不会说的孩子也答得了 */
+.备选行 {
+  display: flex;
+  gap: 12px;
+}
+
+/*
+  这一排是嘴巴不好使时孩子唯一的出路，按不准就等于这道题答不了。
+
+  一个隐形热区都不给它 —— 因为**这一排的邻居是另一个答案**。热区是往外扩一圈看不见的
+  可点范围，两个相邻答案各扩一圈就会在中间叠上，孩子按在缝上提交的是隔壁那个答案。
+  按错导航还能退回来，按错答案是判错。所以只能靠自己的真尺寸够到底线。
+
+  尺寸同 .麦钮 那样按 --舞台系数 折算（那儿写了为什么共享件不能挑某一讲的系数硬写）。
+  100px 只是设计地板；物理地板取 48pt，比红线的 44 留一点余量。真正生效的是两者里高的那条：
+  第3讲系数 ≈0.425 时折算出 113px，第2讲 ≈0.484 时 99px、由 100px 的设计地板顶着。
+  触靶下限的推导见 docs/adr/0004。
+*/
+.备选钮 {
+  /* 同 .麦钮 的折算，但这一排一个热区都不给（邻居是另一个答案，见上），所以物理下限
+     必须靠自己的真尺寸够到：48pt，比 44 留一点余量。 */
+  min-width: max(100px, 48px / var(--舞台系数, 1));
+  height: max(100px, 48px / var(--舞台系数, 1));
+  padding: 0 12px;
+  border: none;
+  border-radius: 18px;
+  font-size: 38px;
+  cursor: pointer;
+  background: var(--坞纸, rgba(255, 255, 255, 0.95));
+  box-shadow: var(--坞软影, 0 10px 26px rgba(43, 51, 82, 0.18));
+  animation: 坞冒出来 0.4s ease;
+}
+
+/* 同 .重听钮:hover：装饰性的，触屏上不留粘着不散的放大 */
+@media (hover: hover) {
+  .备选钮:hover {
+    transform: scale(1.12);
+  }
+}
+
+/* 备选钮里放实体图（贴纸 PNG）时的尺寸；emoji 按钮走上面的 font-size */
+.备选钮 .备选图 {
+  width: 52px;
+  height: 52px;
+  display: block;
+  margin: auto;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+@keyframes 坞心跳 {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.07);
+  }
+}
+
+@keyframes 坞转圈 {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes 坞冒出来 {
+  0% {
+    transform: scale(0);
+  }
+  70% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

@@ -1,0 +1,32 @@
+内容许可 / Content License
+==========================
+
+本仓库采用双许可证。本文件覆盖以下**教学内容与素材**：
+
+1. 各讲的教学内容 —— 台词表、题库、活动设计、家长伴读页
+   （即 `chapters/` 各讲目录下的台词、题目数据与 `家长.html`）；
+2. `web/shared/assets/实体图/` 下的全部 AI 生成图片。
+
+以上内容以 **CC BY-NC 4.0（署名—非商业性使用 4.0 国际）** 许可发布。
+许可证全文（官方 legalcode）：
+
+  https://creativecommons.org/licenses/by-nc/4.0/legalcode.zh-hans
+  https://creativecommons.org/licenses/by-nc/4.0/legalcode.en
+
+简言之：可以复制、修改、再分发这些内容，但必须署名，且不得用于商业目的。
+
+**除上述内容外，本仓库中的其余一切（全部代码）均由根目录 `LICENSE`
+文件下的 MIT 许可证覆盖。** `web/shared/vendor/` 下的第三方库
+（如 three.js）遵循其自带的许可证声明。
+
+---
+
+Dual-licensing note (English): the lesson content — spoken-line tables,
+question banks, activity designs, and the parent companion pages under
+`chapters/` — together with all AI-generated art under
+`web/shared/assets/实体图/`, is licensed under CC BY-NC 4.0
+(https://creativecommons.org/licenses/by-nc/4.0/legalcode.en):
+attribution required, no commercial use. Everything else in this
+repository (all code) is covered by the MIT license in the root `LICENSE`
+file. Third-party libraries under `web/shared/vendor/` keep their own
+licenses.

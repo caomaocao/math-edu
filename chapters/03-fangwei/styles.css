@@ -1,0 +1,1083 @@
+/* 空间方位大冒险 —— 干净现代风。鼠标和手指同为一等输入（见 docs/adr/0004）：
+   整讲画在一个 1280×842 的基准舞台上等比缩放，hover 只做装饰、一律包进
+   @media (hover: hover)，孩子要点的东西够他的手指按得准。
+
+   ┌ 触靶这笔账，照抄之前先读一遍 ────────────────────────────────────────────┐
+   │ 红线是**物理的**：最小那台手机上 ≥44pt（Apple 的下限）。任何「多少舞台px」
+   │ 都只是这条红线在某一个基准高下的换算结果 —— 基准高一改就全部作废。
+   │ 曾经写死过的「80 舞台px」就是这么来的（44 ÷ 一个拍脑袋的 0.63），别抄回来。
+   │
+   │ 最小那台：iPhone 17 Pro 横屏 874×402pt，减掉浏览器工具栏可视约 358pt 高
+   │ （不是 Air，Air 更宽松）。基准高 842 → 系数 = 358 / 842 ≈ 0.425。于是：
+   │   · 光靠**看得见的尺寸**达标 → 要 ≥104 舞台px（104 × 0.425 ≈ 44pt）
+   │   · 补了隐形热区的 → 热区的外扩量自己除过系数（见 /shared/css/热区.css），
+   │     不管缩多少都是每边约 10 物理px，等于白得 20pt，所以 ≥57 舞台px 就够
+   │     （57 × 0.425 + 20 ≈ 44pt）
+   │
+   │ 两条路怎么挑：**邻居是不是另一个答案。** 是（格子、牌子排、坞上的备选钮）
+   │ 就真放大到 104，隐形外扩会盖到邻居头上，把「按偏一点」变成「答错一题」——
+   │ 那比按不着更坏。不是（导航、重听、拖件）就补热区，视觉一个像素不动。
+   │
+   │ 基准高是被最高那一关（宝藏 668 + 上下留边 174）顶出来的，见 js/主.js 的
+   │ 基准舞台。**动那个数就回来把这一整段重算一遍**，下面每条规则的 pt 都跟着变。
+   └────────────────────────────────────────────────────────────────────────┘
+
+   两件事这份文件里刻意**不写**，写了就是两份必漂移：
+   · 触屏卫生（touch-action / overscroll / 长按菜单 / 图片拖影）在 /shared/css/舞台.css
+   · 隐形热区的做法在 /shared/css/热区.css，这儿只挑哪些元素用、外扩多少（--热区）
+
+   还有一条：**舞台里面不许出现 vw / vh**。那两套单位量的是真屏幕，而舞台是一块
+   被缩放过的定尺画布，两者差着一个系数，写了就一定对不上（原来那一批 min(…, 70vh)
+   已经换成定值或百分比了）。真屏幕的尺寸只有舞台外面那几件（开始遮罩、庆祝层、
+   安全区留边）才该问。 */
+
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+:root {
+  --天: #bfe7ff;
+  --草: #a5e39b;
+  --纸: #fffdf6;
+  --墨: #35485e;
+  --阳光: #ffcf5c;
+  --樱桃: #ff7d6e;
+  --湖: #55b7e6;
+  --紫: #b28ce6;
+  --圆角: 22px;
+  --软影: 0 10px 30px rgba(53, 72, 94, 0.16);
+
+  /* 安全区躲让用的 --躲上/下/左/右 在 /shared/css/舞台.css —— 两讲共用一份公式。 */
+
+  /* 小罗盘和它那条道（宝藏 / 动物地图 / 开车 三关共用，长相在下面 .小罗盘 那段）。
+     道宽由罗盘大小**算出来**，不是另写一个数：这两个数必须始终满足「道装得下罗盘」，
+     而英文课的罗盘要大一圈。写成两个独立的常量，迟早有人只改了一个 —— 罗盘就又爬回
+     格子上，而且是静默的（版面照样能看，只是压住了一格）。 */
+  --罗盘大小: 92px;
+  --罗盘边距: 14px;
+  --罗盘道宽: calc(var(--罗盘大小) + var(--罗盘边距) * 2);
+}
+
+/* dvh 而不是 vh：iOS 的 100vh 算的是「地址栏收起来之后」那个高度，照它铺会多出
+   一条量不到的边。讲内本来就不滚动，dvh 也就不会跳。 */
+html, body { height: 100dvh; }
+
+/* 渐变留在 body 上，这是补边看不出接缝的全部秘密：舞台自己透明，缩放剩下的那圈
+   空白露出来的就是同一片渐变。别把它搬到 .外壳 上（见 /shared/css/舞台.css 头注释）。 */
+body {
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  color: var(--墨);
+  background: linear-gradient(#cfeeff, #eafbe4 70%, #d8f5cf);
+  overflow: hidden;
+}
+
+/* .外壳 就是基准舞台本身：宽、高、left/top、scale() 全由 /shared/js/舞台.js 在运行时
+   写进 style（长相里不变的那几条在 /shared/css/舞台.css 的 .基准舞台）。所以这儿一个
+   尺寸都不写 —— 从前那对 100vw/100vh 现在会跟运行时写的 px 打架。 */
+
+/* ---------------------------------------------------------------- 开始遮罩 */
+
+.开始遮罩 {
+  position: fixed; inset: 0; z-index: 100;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 40%, #cfeeff, #8fd0f5);
+}
+.开始牌 { text-align: center; }
+.开始图 { font-size: 110px; animation: 飘 3s ease-in-out infinite; }
+.开始钮 {
+  margin-top: 26px; width: 130px; height: 130px; border: none; border-radius: 50%;
+  font-size: 52px; color: white; cursor: pointer;
+  background: linear-gradient(#ffd76e, #ff9f43);
+  box-shadow: 0 12px 0 #e0862f, var(--软影);
+  animation: 心跳 1.6s ease-in-out infinite;
+}
+.开始钮:active { transform: translateY(8px); box-shadow: 0 4px 0 #e0862f; }
+@keyframes 心跳 { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+@keyframes 飘 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+
+/* ---------------------------------------------------------------- 面板切换（第2讲同款：只换在前，不销毁） */
+
+.环节面板 {
+  position: absolute; inset: 0;
+  visibility: hidden; pointer-events: none;
+}
+.环节面板.在前 { visibility: visible; pointer-events: auto; }
+
+/* ---------------------------------------------------------------- 探险地图 */
+
+.探险地图 { width: 100%; height: 100%; display: block; }
+
+.地图节点 { cursor: pointer; }
+/* 看不见但接得住手指的那个大圆（半径由 主.js 的 画节点 定，那儿算了账）。
+   fill 给的是全透明色而不是 none —— SVG 的默认命中规则要求「填过」，
+   fill: none 的形状是点不着的；pointer-events: all 再兜一层，免得指望浏览器的宽容。 */
+.地图节点 .节点热区 { fill: transparent; pointer-events: all; }
+.地图节点 .节点圈 {
+  fill: var(--纸); stroke: #fff; stroke-width: 5;
+  filter: drop-shadow(0 6px 10px rgba(53, 72, 94, 0.25));
+  transition: transform 0.18s ease;
+}
+/* 装饰性 hover 一律关在 (hover: hover) 里：触屏上「点过就一直放大着」读起来像
+   按住没松手。这条规则下面每一处 :hover 都是同一个道理，不再逐条重复。 */
+@media (hover: hover) {
+  .地图节点:hover .节点圈 { transform: scale(1.12); transform-origin: center; transform-box: fill-box; }
+}
+.地图节点 .节点图 { font-size: 44px; pointer-events: none; }
+.地图节点 .节点星 { font-size: 26px; pointer-events: none; }
+.地图节点.没星 .节点星 { opacity: 0.18; filter: grayscale(1); }
+.地图节点.有星 .节点星 { animation: 星星弹 0.5s ease; }
+@keyframes 星星弹 { 0% { transform: scale(0); } 70% { transform: scale(1.5); } 100% { transform: scale(1); } }
+
+/* ---------------------------------------------------------------- 通用环节布景 */
+
+.舞台布 {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 18px; padding: 24px 24px 150px;
+}
+/* 百分比而不是原来那对 94vw / calc(100vh - 190px)：百分比量的是 .舞台布 那块定尺的
+   内容盒（舞台高 - 上下留边），换基准尺寸时它自己跟着走，vw/vh 量的却是真屏幕。
+   注意这条只在 .大画框 这一层管用 —— 它的父亲高度是定的；再往里的 .玩偶台 那几个
+   父亲高度是内容撑出来的，百分比会退化成 auto，所以里面一律写定值。 */
+.大画框 {
+  background: var(--纸); border-radius: var(--圆角); box-shadow: var(--软影);
+  padding: 22px; max-width: min(1080px, 100%); max-height: 100%;
+  display: grid; place-items: center;
+}
+
+/* 小房子常驻：关里=回地图（台词里就这么教的），地图上=回全站首页——
+   地图原先没有任何出口，想换一讲只能靠浏览器后退。语义统一成「回上一层」。
+
+   它是舞台里第一个 fixed 的东西，所以在这儿说一次、下面几处不再重复：**讲内的
+   position: fixed 现在钉在舞台的角上，不是屏幕的角上**（被 transform 过的祖先成了
+   fixed 后代的包含块），跟内容同一套比例一起缩。这正是要的，见 舞台.js 头注释。
+
+   64 舞台px（27pt）自己不够，但它的邻居是画面不是答案，所以走热区那条路：视觉一个
+   像素不动，外扩自己除过系数，白得 20pt → 约 47pt，过线（账在文件头）。
+   .热区不动位 = 别碰它的 position，它自己已经 fixed 好了。左上角空旷，外扩量用缺省的 10px。 */
+.回家钮 {
+  position: fixed; z-index: 40;
+  left: calc(16px + var(--躲左)); top: calc(16px + var(--躲上));
+  width: 64px; height: 64px; border: none; border-radius: 50%;
+  font-size: 30px; cursor: pointer; background: var(--纸);
+  box-shadow: var(--软影);
+}
+@media (hover: hover) {
+  .回家钮:hover { transform: scale(1.08); }
+}
+
+/* ---------------- 麦克风坞：长相搬去了 /shared/css/麦克风坞.css，两讲共用 */
+/* 本讲用共享件自带的天蓝，只把小钮的底色接回本讲的调色板 */
+:root { --坞纸: var(--纸); --坞软影: var(--软影); }
+/* 坞也在舞台里，所以它离地那 18px 是**舞台**像素，横屏缩放完只剩八个物理像素，
+   正压在 iPhone 的 home 指示线上 —— 大麦克风是孩子按得最多的一个键，压在那条线上
+   一按就被系统当成上滑手势收走。用共享件留的 --坞离地 这个口子抬上来。
+   共享件本身一行没动（坞上那两种钮的尺寸也归它管，本讲不许再压一个更小的宽度上去）。 */
+.麦克风坞挂点 { --坞离地: calc(18px + var(--躲下)); }
+
+/* ---------------------------------------------------------------- 重来 & 家长角 */
+
+/* 底边那几处（重来角 / 家长角 / 坞 / 开车的方向盘）要躲开 iPhone 横屏底下那条
+   home 指示线：压在它上面的按钮，手指一按多半被系统当成上滑手势收走。
+   躲多少由 :root 那四个 --躲* 算（那儿写了为什么不能直接 env()）。 */
+.重来角 {
+  position: fixed; z-index: 40; display: flex; gap: 10px;
+  left: calc(14px + var(--躲左)); bottom: calc(14px + var(--躲下));
+}
+/* 重来和家长钮**故意做小**（44 舞台px，缩放后不到 20pt，孩子按不准正是要的），
+   触靶红线不适用 —— 这是功能不是缺陷，见 docs/adr/0004。 */
+.重来角 button {
+  width: 44px; height: 44px; border: none; border-radius: 50%; cursor: pointer;
+  font-size: 20px; background: #e7e4dc; color: #8b8677; opacity: 0.65;
+}
+@media (hover: hover) {
+  .重来角 button:hover { opacity: 1; }
+}
+.重来角 .真清 { background: #9bd77f; }
+.重来角 .算了 { background: #e0e0e0; }
+
+.家长角 {
+  position: fixed; z-index: 40; display: flex; gap: 10px;
+  right: calc(14px + var(--躲右)); bottom: calc(14px + var(--躲下));
+}
+.家长钮 {
+  width: 44px; height: 44px; border: none; border-radius: 50%; cursor: pointer;
+  font-size: 20px; background: #e7e4dc; color: #8b8677; opacity: 0.55;
+  display: grid; place-items: center; text-decoration: none;
+}
+@media (hover: hover) {
+  .家长钮:hover { opacity: 1; }
+}
+/* 家长伴读页入口：跟旁边两个钮一样灰，只是里头是字不是图标。
+   要同时满足两件相反的事——孩子扫一眼不想点，家长想找时一眼找得到。
+   靠的是「无色彩、无动效、是一段字」：五岁的孩子被颜色和会动的东西吸引，
+   不被灰字吸引；认字的大人对字最敏感。所以尺寸给够，颜色一点不给。
+   （原来 13px 且跟着兄弟钮压到 .55 透明，太隐了，家长自己都要找半天。） */
+.家长页钮 {
+  width: auto; min-width: 44px; padding: 0 12px; border-radius: 14px;
+  font-size: 15px; line-height: 1; letter-spacing: 1px;
+  white-space: nowrap; opacity: 0.85;
+}
+/* 英文那个词更长，圆角条更宽一点就行，不必再缩字号 */
+:root[data-语='en'] .家长页钮 { letter-spacing: 0; padding: 0 14px; }
+
+/* 这张卡**在舞台外面**（markup 里是 .外壳 的兄弟）：它是给大人读的散文，跟着舞台
+   缩到四成四就成了 6px 的字。所以这儿的 px 都是真屏幕的 px —— env() 直接用，
+   不除系数，也不减补边（那两笔是舞台里的东西才要算的账）。 */
+.家长信息卡 {
+  position: fixed; right: 20px; z-index: 60; width: 380px;
+  bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+  background: var(--纸); border-radius: var(--圆角); box-shadow: var(--软影);
+  padding: 20px; font-size: 14px; line-height: 1.7;
+}
+.家长信息卡 h3 { margin-bottom: 8px; }
+.家长信息卡 button {
+  margin-top: 10px; padding: 8px 18px; border: none; border-radius: 12px;
+  background: var(--湖); color: white; cursor: pointer; font-size: 14px;
+}
+
+/* ---------------------------------------------------------------- 语言开关 */
+
+/* 长相在 /shared/css/语言开关.css（index.html 里 <link> 的），这儿只管摆在哪儿
+   和接本讲的调色板。故意跟左下角的「重来」长得完全不像：位置在对角、有颜色、
+   没有 ↺ —— 换语言不清任何东西，孩子可以随便点。 */
+.语言开关 {
+  position: fixed; z-index: 45;
+  right: calc(14px + var(--躲右)); top: calc(14px + var(--躲上));
+  --旗底: rgba(255, 253, 246, 0.9);
+  --旗影: var(--软影);
+  --旗选中底: rgba(53, 72, 94, 0.09);
+  --旗号: 26px;
+}
+
+/* ---------------------------------------------------------------- 通用小部件 */
+
+/* 可拖的东西（衣柜、货架、玩偶……）。「按住了」这件事由下面 .拖着 的放大来说，
+   手指和鼠标都看得见；hover 那一档只是鼠标划过时的一点预告，纯装饰。 */
+.可拖 { cursor: grab; transition: transform 0.15s ease; }
+@media (hover: hover) {
+  .可拖:hover { transform: scale(1.12); }
+}
+.可拖.拖着 { cursor: grabbing; opacity: 0.85; transform: scale(1.2); z-index: 30; }
+
+/* 落点提示 */
+.落点 { transition: all 0.15s ease; }
+.落点.候着 { outline: 4px dashed rgba(85, 183, 230, 0.9); outline-offset: -4px; border-radius: 12px; }
+
+/* 高亮参照物（提示用） */
+@keyframes 提示闪 { 0%, 100% { filter: none; } 50% { filter: drop-shadow(0 0 18px var(--阳光)) brightness(1.25); } }
+.提示中 { animation: 提示闪 0.9s ease-in-out 3; }
+
+/* 答对的东西弹一下 */
+@keyframes 对了弹 { 0% { transform: scale(1); } 40% { transform: scale(1.35) rotate(-6deg); } 100% { transform: scale(1); } }
+.对了 { animation: 对了弹 0.5s ease; }
+
+/* 满屏庆祝层 */
+.庆祝层 {
+  position: fixed; inset: 0; z-index: 90; pointer-events: none; overflow: hidden;
+}
+.纸屑 {
+  position: absolute; top: -40px; font-size: 30px;
+  animation: 落纸屑 linear forwards;
+}
+/* 纸屑要落过屏幕下沿，而**庆祝层不在舞台里** —— 撒纸屑() 把它 appendChild 到
+   document.body（不是 .外壳），整层是照着真屏幕铺的一块 position: fixed。
+   所以这一段距离量的是**屏幕**高，不是舞台高，两者在手机上差一倍多。
+   落多远由 撒纸屑() 现算着写进 --落多远（那儿才知道这一刻的屏幕多高）：
+   写 110dvh 也对，但那是本讲唯一一处会骗到「舞台里没有视口单位」那条红线的写法 ——
+   与其去豁免名单里挂一条，不如让「这东西活在屏幕坐标系里」这件事由造它的那行代码说。
+   兜底的 900px 是给「JS 没来得及写」那一瞬间的，随便哪块屏幕都够落下去。 */
+@keyframes 落纸屑 {
+  to { transform: translateY(var(--落多远, 900px)) rotate(720deg); }
+}
+.大奖牌 {
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  z-index: 91; text-align: center; pointer-events: auto; cursor: pointer;
+  background: var(--纸); border-radius: 30px; box-shadow: var(--软影); padding: 40px 60px;
+  animation: 星星弹 0.6s ease;
+}
+.大奖牌 .奖杯 { font-size: 90px; }
+.大奖牌 .奖星 { font-size: 30px; letter-spacing: 6px; margin-top: 10px; }
+
+/* ---------------------------------------------------------------- 进度点 */
+
+.进度点挂 { min-height: 26px; }
+.进度点排 { display: flex; gap: 10px; justify-content: center; }
+.进度点 {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: rgba(53, 72, 94, 0.15);
+}
+.进度点.亮 { background: var(--阳光); box-shadow: 0 0 10px var(--阳光); animation: 星星弹 0.4s ease; }
+
+/* ---------------------------------------------------------------- 导读 */
+
+/* 百分比量的是 .舞台布 那块定尺内容盒（.导读框 就是 .大画框，父亲高度是定的）：
+   基准舞台调高调矮，这一框自己跟着走。原来是 min(760px, 90vw) / min(520px, 70vh)。 */
+.导读框 { width: min(760px, 100%); height: min(520px, 100%); }
+.导读台 { position: relative; width: 100%; height: 100%; }
+.导读主角 {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  font-size: 120px; animation: 飘 3s ease-in-out infinite;
+}
+.导读演区 { position: absolute; inset: 0; }
+.导读冒头 {
+  position: absolute; transform: translate(-50%, -50%); font-size: 54px;
+  animation: 星星弹 0.5s ease;
+}
+.导读方位字 {
+  position: absolute; transform: translate(-50%, -50%);
+  font-size: 46px; font-weight: 800; color: var(--樱桃);
+  background: var(--纸); border-radius: 16px; padding: 6px 16px; box-shadow: var(--软影);
+  animation: 星星弹 0.5s ease;
+}
+
+/* ---------------------------------------------------------------- 玩偶方位 */
+
+/* 定值，不是原来的 min(640px, 82vw) / min(460px, 58vh)：这一台在 .大画框 里头，
+   父亲的高是内容撑出来的，百分比会退化成 auto，而台上六个玩偶全按百分比摆位 ——
+   台一塌，六个玩偶叠成一堆。舞台是块定尺画布，里面就该写定值。 */
+.玩偶台 { position: relative; width: 640px; height: 460px; }
+.礼物盒 {
+  position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%);
+  font-size: 150px; z-index: 5; filter: drop-shadow(0 10px 14px rgba(53,72,94,0.25));
+}
+.玩偶员 {
+  position: absolute; font-size: 64px; transform: translate(-50%, -50%);
+  transition: left 0.5s ease, top 0.5s ease;
+}
+.玩偶员.拖着 { transition: none; }
+.玩偶圈 {
+  position: absolute; width: 84px; height: 84px; transform: translate(-50%, -50%);
+  border: 4px dashed rgba(85, 183, 230, 0.75); border-radius: 50%;
+}
+
+/* ---------------------------------------------------------------- 蔬菜格子 */
+
+.冰箱台 { position: relative; padding-bottom: 90px; }
+.冰箱 {
+  display: grid; grid-template-columns: repeat(2, 132px); grid-auto-rows: 96px;
+  gap: 10px; background: #dfeef7; padding: 18px; border-radius: 20px;
+  border: 6px solid #b8d4e6;
+}
+/* ┌ 96 舞台px 的那一族格子（冰箱格 / 货架格 / Boss格）：**故意停在 41pt，不补不放大** ┐
+   │ 这是决定，不是漏项（下面两关的同款格子也照这条办，不再各写一遍）。
+   │ · 不补热区：邻格是另一个答案。外扩会盖到隔壁头上，把「按偏一点」变成「答错一题」。
+   │ · 不放大：格子一大，这一关就更高；最高的那一关定基准高，基准一高系数就更低，
+   │   而触靶要的是物理尺寸 —— 门槛跟着一起涨，绕一圈回到原地。
+   │ · 41pt 差那 3pt 吃得住：按不准邻格靠的是**格距**（132×106 舞台px = 56×45pt 的间距），
+   │   不是格子本身多大；96px 的格子远超一根手指落点要的精度，而格心到边有 48px 余量。
+   └ 要动这一族，先回文件头把那笔账重算一遍。 */
+.冰箱格 { background: var(--纸); border-radius: 12px; }
+/* 全讲最小的一个拖件（56 舞台px = 24pt，货架和蔬菜格子共用这一条）。热区的缺省
+   外扩 10px 只补到 43.8pt —— 差红线两毫，所以这一处把外扩调到 12px（约 48pt）。
+   贵不到哪儿去：托盘里该拖的那件永远是最左边那件，外扩多点只是往左边空处长
+   （详见 环节/蔬菜格子.js 里那段）。视觉尺寸一个像素没动。 */
+.货员 { --热区: 12px; position: absolute; font-size: 56px; z-index: 3; }
+/* 实体图（贴纸 PNG）版货员：跟 emoji 同一占位尺寸，位置逻辑一行不改 */
+.货员 .货图 {
+  width: 56px;
+  height: 56px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* ---------------------------------------------------------------- 树桩行列 */
+
+.森林台 {
+  display: grid; grid-template-columns: repeat(3, 150px); grid-auto-rows: 124px;
+  gap: 18px 14px; padding: 14px;
+  background: linear-gradient(#dff3d3, #cbe9bb); border-radius: 20px;
+}
+/* 一格 150×124，本来就过了 80 那条线，不用补热区 */
+.树桩 { position: relative; cursor: pointer; transition: transform 0.15s ease; }
+@media (hover: hover) {
+  .树桩:hover { transform: scale(1.08); }
+}
+/* 木墩是画出来的一个圆盘凳：年轮顶面 + 深色墩边，动物屁股压在盘沿上，一格一个整体 */
+.桩座 {
+  position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%);
+  width: 96px; height: 40px; border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 42%, #e8c79a 0 18%, #d8b184 18% 40%, #c99e6d 40% 66%, #b98a5c 66%);
+  box-shadow: 0 12px 0 -2px #9a6f45, 0 16px 10px rgba(53, 72, 94, 0.18);
+}
+.桩上动物 {
+  position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+  font-size: 58px; z-index: 2; line-height: 1;
+}
+
+/* ---------------------------------------------------------------- 八大罗盘 */
+
+/* 定值，同 .玩偶台 的道理（原来是 min(430px, 60vw) 两处）：八个槽按百分比绕圈摆 */
+.罗盘台 { position: relative; width: 430px; height: 430px; }
+.罗盘花 { width: 100%; height: 100%; }
+.罗盘针 { transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.3, 1); transform-origin: center; }
+/* 槽是要点的（选中牌子再点槽放下），64 舞台px（28pt）→ 补隐形热区，视觉不动，
+   约 47pt 过线。这一处敢外扩，是因为八个槽绕着半径 44% 的圆排开，相邻两槽中心相距
+   约 145 舞台px，而外扩后一个槽也只占 111 —— 谁也伸不到谁身上（对比下面的 .方位牌：
+   那一排挨得紧，只能真放大）。.热区不动位：它自己已经 absolute + translate 摆好了。 */
+.罗盘槽 {
+  position: absolute; width: 64px; height: 64px; transform: translate(-50%, -50%);
+  border: 4px dashed rgba(53, 72, 94, 0.3); border-radius: 50%;
+  display: grid; place-items: center; font-size: 30px; font-weight: 800; color: var(--樱桃);
+  background: rgba(255, 253, 246, 0.75); cursor: pointer;
+}
+.罗盘槽.放好 { border-style: solid; border-color: var(--阳光); }
+/* 八块牌子必须排成**一行**（nowrap），两门课都是：折行的代价是 120 舞台px 的高度，
+   这一关的列（474 + 托盘 + 进度点）本来就已经排在最高的几关里。宽度不是问题 ——
+   舞台内容宽有 1232，中文课八块 948、英文课约 1100，都装得下。 */
+.罗盘托盘 { display: flex; gap: 12px; flex-wrap: nowrap; justify-content: center; max-width: 1160px; }
+/* 牌子是这一关**真放大**的那一处：108 舞台px 见方 ≈ 46pt，光靠看得见的尺寸就过线
+   （红线是 104，多给 4px 是不想让它贴着线站 —— 字体一换、内边距一动就掉下去），
+   一点隐形热区都不加。
+   为什么不像旁边的 .罗盘槽 那样补热区：八块牌子挨着排，缝只有 12px，而热区的外扩
+   自己除过系数，这个基准高下每边要吃掉 24 舞台px —— 两边一叠，孩子瞄着「北」的边缘，
+   收到手指的却是隔壁那块。「点哪块牌子」就是这一关的答案，把按偏变成答错，
+   比按不着更坏（文件头那条：邻居是答案就真放大）。
+   把缝拉到 48px 也能不叠，但英文课最长的 SOUTHWEST 一块就 146px，四长四短加七道
+   48 的缝要 1352 —— 比整个舞台的内容宽（1232）还宽，排不下。 */
+.方位牌 {
+  min-width: 108px; height: 108px; border: none; border-radius: 16px; cursor: pointer;
+  font-size: 32px; font-weight: 800; color: var(--墨);
+  background: var(--纸); box-shadow: var(--软影); padding: 0 10px;
+}
+@media (hover: hover) {
+  .方位牌:hover { transform: scale(1.1); }
+}
+.方位牌.选中 { outline: 5px solid var(--湖); transform: scale(1.15); }
+
+/* ---------------------------------------------------------------- 学校地图 */
+
+.街区台 { position: relative; padding: 44px 56px; }
+.街区网 {
+  display: grid; grid-template-columns: repeat(3, 150px); grid-auto-rows: 120px; gap: 12px;
+}
+.街区格 {
+  display: grid; place-items: center; background: #f3fbef; border-radius: 16px;
+  cursor: pointer; transition: transform 0.15s ease;
+}
+/* 一格 150×120，过了 80 那条线 */
+@media (hover: hover) {
+  .街区格:hover { transform: scale(1.06); }
+}
+.楼图 { font-size: 60px; }
+.边字 {
+  position: absolute; font-size: 30px; font-weight: 800; color: var(--湖);
+}
+.北字 { top: 2px; left: 50%; transform: translateX(-50%); }
+.南字 { bottom: 2px; left: 50%; transform: translateX(-50%); }
+.西字 { left: 12px; top: 50%; transform: translateY(-50%); }
+.东字 { right: 12px; top: 50%; transform: translateY(-50%); }
+
+/* ---------------------------------------------------------------- 小罗盘（多关共用） */
+
+/*
+  它是块**参照物**，不是钮 —— 没有 onclick、里头也没有按钮，孩子从来不点它。
+  所以不许它接手指，`pointer-events: none` 让点击穿过去落到底下的格子上。
+
+  从前它 `right/top: -8px` 挂在台子右上角，压住三关各自右上角那一格：宝藏那格沙子被盖
+  54%（连格心一起埋了，手指没法瞄露出来的边）、动物地图盖住小鸟家（孩子得看清谁住哪儿
+  才答得出）、开车盖住路网右上格（车开过去就半个身子不见）。所以现在给台子右边空出一条
+  **罗盘道**，它摆在道里，谁也不压。
+
+  只加宽、不加高：宝藏是全讲最高的一关，基准舞台的高就是被它顶出来的，那一轴一点余量
+  都没有（见文件头）。宽这一轴反过来富裕得很 —— 台子最宽的开车连道带格也不到八百
+  （中文课 766、英文课 786），画框能到 1080。
+
+  `right` 给的是道里的位置而不是负值，再加上道宽是按罗盘大小算出来的，所以英文课那个
+  更大的罗盘照样落在道里，不会因为自己变宽就又爬回格子上。
+*/
+.小罗盘 {
+  position: absolute; right: var(--罗盘边距); top: var(--罗盘边距);
+  width: var(--罗盘大小); height: var(--罗盘大小); z-index: 5;
+  pointer-events: none;
+  background: var(--纸); border-radius: 50%; box-shadow: var(--软影);
+  font-weight: 800; color: var(--湖); font-size: 18px;
+}
+
+/* 罗盘道那条规则不在这儿 —— 它得排在三个台子各自的 padding 简写之后才盖得住，
+   所以搬到了 .海岛台 后面（本文件里三者最靠后的那个）。 */
+.小罗盘::after {
+  content: '✦'; position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%); color: var(--樱桃); font-size: 22px;
+}
+.小北 { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); color: var(--樱桃); }
+.小南 { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); }
+.小西 { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); }
+.小东 { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
+
+/* ---------------------------------------------------------------- 衣柜 */
+
+.衣柜台 { position: relative; padding-bottom: 110px; }
+.衣柜体 {
+  display: grid; grid-template-columns: 500px 130px; grid-template-rows: 170px 200px;
+  gap: 12px; background: #c99e6d; padding: 18px; border-radius: 18px;
+  border: 8px solid #a97e4f;
+}
+.挂衣区 {
+  grid-row: 1; grid-column: 1; display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 8px; background: #b98a5c; border-radius: 12px; padding: 8px;
+}
+.衣柜槽 { position: relative; background: rgba(255, 253, 246, 0.35); border-radius: 10px; }
+.钩子 { position: absolute; top: -2px; left: 50%; transform: translateX(-50%); color: #6e4f2f; font-size: 20px; }
+.右列 {
+  grid-row: 1 / 3; grid-column: 2; display: grid; grid-template-rows: repeat(4, 1fr);
+  gap: 8px; background: #b98a5c; border-radius: 12px; padding: 8px;
+}
+.底层 {
+  grid-row: 2; grid-column: 1; display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 8px; background: #b98a5c; border-radius: 12px; padding: 8px;
+}
+.衣物员 { position: absolute; font-size: 66px; z-index: 3; }
+.衣物托盘 { position: absolute; left: 0; right: 0; bottom: 0; height: 100px; }
+
+/* ---------------------------------------------------------------- 货架 */
+
+.货架台 { position: relative; padding: 56px 70px 110px 90px; }
+.货架棚 { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font-size: 64px; }
+.货架网 {
+  display: grid; grid-template-columns: repeat(4, 120px); grid-auto-rows: 96px; gap: 10px;
+  background: #e8b96a; padding: 14px; border-radius: 16px; border: 6px solid #cf9a45;
+}
+/* 96 舞台px 那一族，同 .冰箱格 那段决定：不补热区、不放大 */
+.货架格 { background: #fff3d9; border-radius: 10px; }
+.行标们 { position: absolute; left: 4px; top: 70px; display: grid; grid-auto-rows: 106px; align-items: center; }
+.列标们 { position: absolute; left: 104px; bottom: 66px; display: grid; grid-template-columns: repeat(4, 130px); }
+.行标, .列标 { font-size: 16px; font-weight: 800; color: #a97e4f; }
+
+/* ---------------------------------------------------------------- 动物地图 */
+
+.村子台 { position: relative; padding: 26px; }
+.村子网 { display: grid; grid-template-columns: repeat(3, 140px); grid-auto-rows: 104px; gap: 12px; }
+.小房子 {
+  position: relative; border-radius: 14px; display: grid; place-items: center;
+  padding-top: 8px;
+}
+.房顶 { position: absolute; top: -2px; left: 8px; font-size: 26px; }
+.房主 { font-size: 52px; }
+.走路的 { position: absolute; font-size: 44px; z-index: 9; transform: translate(-50%, -50%); pointer-events: none; }
+
+/* ---------------------------------------------------------------- 开车 */
+
+.小镇台 { position: relative; padding: 20px; }
+.小镇网 { display: grid; grid-template-columns: repeat(7, 86px); grid-auto-rows: 74px; gap: 4px; }
+.镇格 { border-radius: 10px; position: relative; }
+.是路 { background: #e8d9b8; }
+.是草 { background: #cdeabd; }
+.站牌 { position: absolute; inset: 0; display: grid; place-items: center; font-size: 60px; z-index: 2; }
+.小车 { position: absolute; font-size: 54px; z-index: 8; transform: translate(-50%, -50%); pointer-events: none; }
+/* 底边同 重来角：躲开 home 指示线（--躲* 见 :root） */
+.方向盘 {
+  display: grid; grid-template-areas: '. 北 .' '西 . 东' '. 南 .';
+  gap: 6px; position: fixed; z-index: 45;
+  right: calc(26px + var(--躲右)); bottom: calc(26px + var(--躲下));
+}
+/* 64 舞台px（27pt）→ 补隐形热区，白得 20pt，约 47pt 过线（.热区 = 排在网格里，
+   由它自己建定位上下文）。这一处敢外扩是因为十字盘里四个钮**两两都是斜对角**：
+   缝 6px，外扩后只在斜角上叠出一小块，正对着谁的边都不叠 ——
+   「按下去车往哪开」这件事不会认错。 */
+.方向钮 {
+  width: 64px; height: 64px; border: none; border-radius: 16px; cursor: pointer;
+  font-size: 26px; font-weight: 800; color: white; background: var(--湖);
+  box-shadow: 0 6px 0 #3a86ad;
+}
+.方向钮:active { transform: translateY(4px); box-shadow: 0 2px 0 #3a86ad; }
+.钮北 { grid-area: 北; }
+.钮南 { grid-area: 南; }
+.钮西 { grid-area: 西; }
+.钮东 { grid-area: 东; background: var(--樱桃); box-shadow: 0 6px 0 #c74534; }
+.钮东:active { box-shadow: 0 2px 0 #c74534; }
+
+/* ---------------------------------------------------------------- 拍照 */
+
+.拍照框 { padding: 12px; }
+.拍照台 { position: relative; }
+.拍照布 { border-radius: 16px; display: block; }
+.座位钮们 { position: absolute; inset: 0; pointer-events: none; }
+/* 这四个钮先**真放大**到 80 舞台px（原来是个 38px 高的小药丸，连「看着能点」都不够
+   —— 而这一关孩子唯一要做的动作就是点它们），再由 拍照.js 那边补一圈隐形热区补足
+   物理尺寸（80 舞台px 自己只有 34pt，加热区约 54pt；账在文件头）。
+   为什么不干脆放到 100：那就压到画布上的小鸭和小朋友身上了，而这四个钮是浮在
+   3D 画面四边的标签，越大越挡画面 —— 何况它们彼此隔着两百多 px，外扩很安全。
+   放大靠 min-height / min-width + 里头那张娃图和色点一起长（见文件末尾 .座娃图 / .色点），
+   摆位契约一行没动：还是 absolute + translate(-50%,-50%) 钉在画布四边的中点上，
+   :hover 那条也照旧把 translate 重写一遍（不重写就会掉回左上角）。 */
+.座位钮 {
+  position: absolute; transform: translate(-50%, -50%); pointer-events: auto; white-space: nowrap;
+  border: none; border-radius: 999px; padding: 8px 12px; font-size: 26px;
+  min-height: 80px; min-width: 80px;
+  cursor: pointer; background: var(--纸); box-shadow: var(--软影);
+}
+@media (hover: hover) {
+  .座位钮:hover { transform: translate(-50%, -50%) scale(1.12); }
+}
+.照片排 { display: flex; gap: 14px; }
+.照片卡 {
+  position: relative; background: white; padding: 8px 8px 20px; border-radius: 10px;
+  box-shadow: var(--软影); transform: rotate(-2deg);
+}
+.照片卡:nth-child(2n) { transform: rotate(2deg); }
+.照片卡 img { width: 116px; height: 116px; border-radius: 6px; display: block; }
+.照片卡.在猜 { outline: 5px solid var(--阳光); animation: 心跳 1.4s ease-in-out infinite; }
+.照片卡.猜完 { opacity: 0.85; }
+/* 位置在这儿，长相（一颗色点）在文件末尾那一批里 */
+.照片主 { position: absolute; right: 2px; bottom: -2px; }
+
+/* ---------------------------------------------------------------- 宝藏 */
+
+.海岛台 { position: relative; padding: 26px; background: #bfe3f2; border-radius: 20px; }
+
+/*
+  罗盘道 —— 三关的台子右边都空出这么一条，小罗盘摆在里头，不压在任何一格上（理由写在
+  上面 .小罗盘 那段；宽度怎么算的在 :root 那三行）。必须排在三个台子各自的 `padding`
+  简写**之后**：同样的特异度，后写的才盖得住 —— 写在前面的话简写会把它连本带利地覆盖回去，
+  而且是静默的（我第一版就写在 .小罗盘 旁边，罗盘纹丝不动）。
+*/
+.海岛台,
+.村子台,
+.小镇台 {
+  padding-right: var(--罗盘道宽);
+}
+/* 格子的尺寸一个像素没动（92×78）。**别为了触靶把它调大**：宝藏是全讲最高的一关，
+   基准舞台的高就是被它顶出来的，这儿每加 10px，整讲的缩放系数就再低一档，
+   而触靶要的是**物理**尺寸 —— 放大格子等于同时抬高门槛，绕回原地（文件头那笔账）。
+   够不够按靠下面 .沙格 补的热区。 */
+.海岛网 {
+  display: grid; grid-template-columns: repeat(5, 92px); grid-auto-rows: 78px; gap: 6px;
+  background: #f2dfae; padding: 16px; border-radius: 18px;
+}
+/* 热区在这一格是**打了折的**，别照抄到别处，也别以为它白得 20pt：
+   五乘五的网缝只有 6px，而外扩每边要吃 23 舞台px，两边一定叠上。叠上之后按画的顺序
+   （后面的盖前面的）算，所以每一格实际上是「让出右下 17px、白得左上 17px」——
+   可点范围是**挪了位**，不是变大了。挪 17 舞台px（7pt）在这儿吃得住：格心到边还有
+   46px 的余量，而孩子瞄的是格子正中那张 40px 的贴纸，怎么偏都还在自己格里。
+   真正白赚的是整张网最外面那一圈（外面没有邻居来抢）。
+   为什么不像别的格子那样干脆不补：那些格子有 96px 打底，这一格只有 78。 */
+.沙格 {
+  background: #f7ecc8; border-radius: 10px; cursor: pointer;
+  display: grid; place-items: center; font-size: 40px;
+  transition: transform 0.12s ease;
+}
+@media (hover: hover) {
+  .沙格:hover { transform: scale(1.06); background: #fbf3d9; }
+}
+.沙格.挖开 { background: #ffe9a8; }
+/* 64px 贴线 → 补隐形热区（.热区，它排在 .舞台布 的流里）。上下邻居隔着 18px 的
+   gap，缺省外扩 10px 还留 8px。「再念一遍线索」是听漏了时唯一的自救键，按不着等于没有。 */
+.线索钮 {
+  width: 64px; height: 64px; border: none; border-radius: 50%;
+  font-size: 26px; cursor: pointer; background: var(--纸); box-shadow: var(--软影);
+}
+@media (hover: hover) {
+  .线索钮:hover { transform: scale(1.1) rotate(-20deg); }
+}
+
+/* ---------------------------------------------------------------- 记忆 */
+
+/* 定值，同 .玩偶台 的道理（原来是 min(620px, 80vw) / min(430px, 56vh)）：
+   四只小动物和四丛花都按百分比站位 */
+.记忆台 { position: relative; width: 620px; height: 430px; }
+.大树 {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  font-size: 150px;
+}
+.记忆员, .花丛 {
+  position: absolute; font-size: 56px; transform: translate(-50%, -50%);
+  animation: 星星弹 0.4s ease;
+}
+.倒数圈 { position: absolute; left: 50%; bottom: -6px; transform: translateX(-50%); font-size: 20px; }
+
+/* ---------------------------------------------------------------- Boss */
+
+/* 定值（原来是 min(680px, 84vw)）：演区里的大件小件按百分比摆，小龙按 calc(50% + 175px) */
+.Boss台 { position: relative; width: 680px; }
+.Boss演区 { position: relative; height: 330px; }
+.Boss网 { display: grid; grid-template-columns: repeat(3, 104px); grid-auto-rows: 96px; gap: 8px; justify-content: center; }
+/* 96 舞台px 那一族，同 .冰箱格 那段决定（这一关的格子孩子其实不点 ——
+   Boss 全程用嘴或坞上的备选钮答 —— 尺寸留着跟那一族一致，将来若改成可点也不用重想） */
+.Boss格 { background: #f3ecff; border-radius: 12px; display: grid; place-items: center; font-size: 48px; }
+.Boss大件 { position: absolute; font-size: 120px; transform: translate(-50%, -50%); }
+.Boss小件 { position: absolute; font-size: 54px; transform: translate(-50%, -50%); animation: 星星弹 0.4s ease; }
+.Boss罗盘 {
+  position: relative; width: 240px; height: 240px; margin: 20px auto;
+  background: var(--纸); border-radius: 50%; box-shadow: var(--软影);
+  font-weight: 800; color: var(--湖); font-size: 24px;
+}
+/* 指针是 CSS 画的箭头。原来用的字形 🡱（U+1F871）在生僻的补充箭头区，很多系统的
+   字体根本没有它，圆盘上就是一片空白——方向指示不能指望字体兜底，跟拍照的四色
+   圆点、宝藏的脚印同一个道理。定位契约没变：行内 transform 仍是
+   translate(-50%,-88%) rotate(角度)，枢轴 50% 88%，转起来还是那个缓动。 */
+.Boss针 {
+  position: absolute; left: 50%; top: 50%;
+  width: 30px; height: 88px;
+  background: var(--樱桃);
+  clip-path: polygon(50% 0, 100% 32%, 70% 32%, 70% 100%, 30% 100%, 30% 32%, 0 32%);
+  transform-origin: 50% 88%; transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+/* ---------------------------------------------------------------- 英文课的字号
+ *
+ * 教学字符在英文课里换成了单词本身（北 → NORTH，东北 → NORTHEAST）。
+ * 一个汉字换成九个字母，凡是「按一个字的宽度摆好的位置」全得让一让：
+ * 罗盘边上的字、方向钮、罗盘槽、备选钮。位置和布局一行不动，只调字号与容器宽度 ——
+ * 摆位是共用的，两门课看到的是同一张图，只是图上写的字不一样。
+ *
+ * **让位的办法是把容器放宽，不是把字缩小。** 这几个词正是这一讲要孩子认的东西，
+ * 而画面还要再乘一道舞台缩放（横屏约 0.63），11px 的 NORTHEAST 缩完剩 7 个物理像素，
+ * 不认字的五岁孩子等于什么都没看见。宽度是有的：舞台 1280 宽，原来那些 60px / 780px
+ * 是照旧桌面窗口拍的，早就不是上限了。
+ *
+ * `主.js` 在 <html> 上挂 data-语，换语言当场生效，不必重建任何一块 DOM。
+ */
+
+:root[data-语="en"] .导读方位字 { font-size: 24px; padding: 6px 12px; }
+
+/* 槽只能这么大：八个槽绕在半径 189px 的圆周上，相邻中心相距 145px，圆盘再撑就要碰上。
+   所以槽里的字仍然小 —— 认字靠的是下面那排放大过的牌子，槽里那份只是「已经放好了谁」
+   的记录。 */
+:root[data-语="en"] .罗盘槽 { width: 82px; height: 82px; font-size: 11px; letter-spacing: 0; }
+/* 牌面换成单词，字号从 11px 抬到 20px（原来那个数缩放完只剩五个物理像素）。
+   盒子不用再加宽：中文课那条已经给了 108 见方的方块，最长的 SOUTHWEST 按 20px 粗体
+   约 130px，加 16px 内边距 146，四长四短加七道 12px 的缝共约 1100 —— 托盘的
+   1160 装得下，一行排完（不许折行，理由在中文课那条规则上）。 */
+:root[data-语="en"] .方位牌 { padding: 0 8px; font-size: 20px; letter-spacing: 0; }
+
+:root[data-语="en"] .街区台 { padding: 44px 84px; }
+:root[data-语="en"] .边字 { font-size: 17px; }
+
+/* 英文的四个词长，罗盘得大一圈。只改 --罗盘大小 这一个数：罗盘道的宽度是由它算出来的，
+   所以道会自己跟着变宽，不用有人记得回去把另一个数也改了（见文件上方 :root 那三行）。 */
+:root[data-语="en"] { --罗盘大小: 112px; }
+:root[data-语="en"] .小罗盘 { font-size: 11px; }
+:root[data-语="en"] .Boss罗盘 { font-size: 14px; }
+
+/* 方向钮上的字同理放宽：NORTH 按 18px 粗体约 66px，原来那 76px 宽装得下，
+   钮一个像素没动（原来 13px，缩放完只剩八个物理像素）。 */
+:root[data-语="en"] .方向钮 { width: 76px; font-size: 18px; }
+:root[data-语="en"] .方向盘 { gap: 8px; }
+
+/* 备选钮的长相归 /shared/css/麦克风坞.css；那份是两讲共用的，本讲只在英文课上调它。
+   备选钮跟方位牌同类 —— 邻居是另一个答案，所以它不补热区，够大全靠看得见的尺寸。
+   **这儿故意不写 min-width / height**：那两个数是触靶红线的落点，归共享件一处说了算。
+   本讲先后在这儿写过 76、84、100，每次都是悄悄把红线在本讲身上削掉几个像素；
+   不写，就永远跟着共享件走，它一提高本讲自动跟上。
+   要调的只有字：字号 15 → 18（原来那个数缩放完只剩六个物理像素），内边距从共享件的
+   12 收到 8，为的是最宽的那一排排得下 —— 这一讲最多的一次是八方位（八大罗盘 /
+   学校地图问方向 / Boss 题三题四），英文课四长四短约 950 + 七道 12px 的缝 = 1034，
+   坞里还有 🔊(80) 和大麦钮(96) 加两道 16px 的缝共 208，合计约 1242，比 1280 的舞台
+   窄一点点。坞是 nowrap 的，排不下会被舞台裁掉两头的钮 —— 真裁了就把字号退回 16px
+   （能省 60px），别去动共享件的宽度。 */
+:root[data-语="en"] .备选钮 { font-size: 18px; padding: 0 8px; letter-spacing: 0; }
+.过河桥 { display: flex; gap: 6px; justify-content: center; padding: 10px 0 2px; }
+.桥板 { font-size: 52px; filter: grayscale(1) brightness(0.7); }
+.桥板.亮板 { filter: none; animation: 星星弹 0.5s ease; }
+/* 小龙挡在桥的那一头，紧贴最后一块桥板（桥宽 6×52 + 5×6 = 342px 居中，右端在
+   50% + 171px），脚跟桥板落在同一条地线上。原来钉在台面最右（right: 6px），台面
+   一宽龙和桥就隔开一百多像素，「答对一题退 18px」完全读不出来。font-size 是给
+   飞走那团 💨 留的（守桥时画的是 64px 的贴纸图，见下面 .龙图）。 */
+.小龙 { position: absolute; left: calc(50% + 175px); bottom: 2px; font-size: 64px; transition: transform 0.8s ease; }
+
+/* 蔬菜格子的实体图（贴纸 PNG）版货员：冰箱里的八样东西跟原来那个 emoji 同一个
+   字号盒（.货员 是 56px），换图一个像素都不位移。货架的 .货图 是另一关的同类规则，
+   两关各留各的类名，将来单独调一关的尺寸不会牵连另一关。 */
+.货员 .菜图 {
+  width: 56px;
+  height: 56px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* 实体图（贴纸 PNG）版衣物：贴纸带白描边和抠图边距，等盒换图会显小一圈，而衣柜
+   的槽位又大（挂槽约 90×154），52px 的衣服挂在里面像玩具票根——放到 66px，
+   字号盒同步放大，缺图兜底也一致。挂杆槽和格子槽用的是同一个 .衣物员，所以
+   两种槽位一条规则就够；位置由 吸到() 按落点中心现算，放大不挪位。 */
+.衣物员 .衣图 {
+  width: 66px;
+  height: 66px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* 实体图（贴纸 PNG）版地点：跟原来的 emoji 同一占位尺寸，格子里的位置一行不改。
+   缺图时 画实体() 还回文本节点，字号由外层 .楼图 / .站牌 管，跟换图前一模一样。 */
+.楼图 .楼实体图 {
+  width: 60px;
+  height: 60px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* 贴纸显小的补偿：格子 86×74，44px 的站牌在里头认不清，放到 60px。 */
+.站牌 .站实体图 {
+  width: 60px;
+  height: 60px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* -------------------------------------------- 宝藏：贴纸图与 CSS 脚印（票 08） */
+
+/* 沙格里的贴纸图（地标 / 宝物 / 挖开的坑）：占位盒跟 .沙格 的 font-size: 40px 一样大，
+   换图不许让东西位移。点击判定归格子本身，图片不吃事件。 */
+.沙格 .沙图 {
+  width: 40px; height: 40px; display: block;
+  pointer-events: none; -webkit-user-drag: none;
+}
+
+/* 走过的格子 —— 脚印是路径标记，不是这一关的实体，所以不出素材、用 CSS 画：
+   两枚深褐脚掌斜压在沙子上，格子底色也压深一档，五乘五里走过哪几格一眼看得清。
+   刻意不带朝向：有方向的脚印 AI 画不准，而方向本来就由「一格一格亮起来」讲清楚了。
+
+   画在 ::before 而不是 ::after：::after 让给了隐形热区（/shared/css/热区.css 的外扩
+   只能挂在 ::after 上，一个元素就一个）。位置分毫不差 —— .沙格 是 place-items: center
+   的网格，走过的格子里除了这枚脚印没有别的东西，谁排在前谁排在后都落在正中。 */
+.沙格.走过 { background: #e8d19b; }
+.沙格.走过::before {
+  content: '';
+  width: 40px; height: 40px;
+  background:
+    radial-gradient(ellipse 7px 10px at 32% 33%, #8b5a2b 96%, transparent 100%),
+    radial-gradient(ellipse 7px 10px at 68% 67%, #8b5a2b 96%, transparent 100%);
+  opacity: 0.8;
+  animation: 星星弹 0.35s ease;
+}
+
+/* 实体图（贴纸 PNG）版动物地图：每个尺寸都照抄原来那个 emoji 的字号盒——
+   .房顶 26px（十二格共用的那间小屋）、.房主 52px（住户）、.走路的 44px（小跑的主角）。
+   三处各留各的类名，将来单独调一处不会牵连另外两处。 */
+.房顶 .房顶图 {
+  width: 26px;
+  height: 26px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.房主 .房主图 {
+  width: 52px;
+  height: 52px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.走路的 .走图 {
+  width: 44px;
+  height: 44px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* 实体图（贴纸 PNG）版树桩上的动物：.桩上动物 原本是 58px 的字号盒，图就 58px。
+   墩子（.桩座）还是 CSS 画的，一行没动；动物 display:block 去掉行内基线那点空隙，
+   屁股才还压在盘沿上。 */
+.桩上动物 .桩动图 {
+  width: 58px;
+  height: 58px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* 实体图（贴纸 PNG）版记忆员：六只小动物跟原来的 emoji 同一个字号盒
+   （.记忆员/.花丛 是 56px），站位是按百分比算的，换图一步不挪。
+   花丛翻开时那朵花整个换成同一张图，所以两个类名共用一条规则。
+   大树和花丛本身的图另有 .树图 / .丛图（见文件末尾），各按自己的字号盒。 */
+.记忆员 .记忆图,
+.花丛 .记忆图 {
+  width: 56px;
+  height: 56px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* 实体图（贴纸 PNG）版玩偶：这一关的前后感全靠「大小」，而大小是 摆员() 按位置
+   写进 fontSize 的（后面 52px、四周 64px、前面 82px），所以图不写死像素，写 1em
+   ——跟着字号盒一起大小，摆位表里那几个数字换图之后一个都不用改。
+   中间那个礼物盒不在这条规则里，它按 .盒图 走自己的 150px（见文件末尾）。 */
+.玩偶员 .玩偶图 {
+  width: 1em;
+  height: 1em;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* 实体图（贴纸 PNG）版 Boss 动物阵：格子是 104×96 的固定网格、内容居中，
+   图放到 72px 是这一关唯一一处**故意放大**（原 emoji 48px）——九只动物挤在
+   一屏九宫格里，孩子要一眼分清猫和狐狸、熊和熊猫，48px 的贴纸太小。
+   格子尺寸没动，网格自己把图居中，周围一圈还留着十几像素余量，谁也不会挪位。
+   只有动物阵的格子带 .阵图；星星网（⭐ 是 UI 图形）和城堡网（另有 .堡图）不受影响。 */
+.Boss格 .阵图 {
+  width: 72px;
+  height: 72px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* ------------------------------------------- 布景与道具的实体图（票 09）
+ *
+ * 这一批换的是「站在背景里的那些东西」：导读的火箭罗盘、货架的棚子、记忆的
+ * 大树花丛、玩偶的礼物盒、开车的小车、Boss 的桥板小龙城堡冰淇淋大山气球。
+ *
+ * 每一条的宽高都照抄它原来那个 emoji 的字号盒——换图不许让任何东西位移，
+ * 所以下面这些数字全是从上面那些 font-size 抄下来的，别自己另定一个。
+ * 一律 display:block 去掉行内基线那点空隙，pointer-events:none 把点击、
+ * 拖拽的判定留给外层元素（拖拽由各环节的 pointer 事件管）。
+ */
+
+/* 导读：主角 120px（.导读主角），前后两位参照 54px（.导读冒头）。
+   四个方向标 ⬆️⬇️⬅️➡️ 是 UI 图形，还是文本，走 .导读冒头 自己的字号。 */
+.导读主角 .主角图 {
+  width: 120px;
+  height: 120px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.导读冒头 .冒头图 {
+  width: 54px;
+  height: 54px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* 货架的棚子：.货架棚 原本是 64px 的字号盒，居中挂在货架上沿 */
+.货架棚 .棚图 {
+  width: 64px;
+  height: 64px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* 记忆：大树 150px（.大树），花丛 56px（.花丛，跟藏在里面的小动物同一个盒子，
+   翻开时那朵花整个换成动物图，两张图一样大，位置一步不挪）。 */
+.大树 .树图 {
+  width: 150px;
+  height: 150px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.花丛 .丛图 {
+  width: 56px;
+  height: 56px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* 玩偶方位的中心：.礼物盒 是 150px 的字号盒，外层那圈 drop-shadow 照旧管用 */
+.礼物盒 .盒图 {
+  width: 150px;
+  height: 150px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* 开车的小车：跟站牌一起放大（40 → 54，贴纸显小的补偿）；居中靠外层的
+   translate(-50%,-50%)，摆车() 写的还是同一个 left/top，开的还是原来那条路。 */
+.小车 .车图 {
+  width: 54px;
+  height: 54px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* Boss：桥板 52px——素材是横条画在方画布里，34px 的盒子里木板只剩十几像素高，
+   桥细得看不见；放到 52px 视觉上才回到原来 🟫 那块方砖的分量（暗/亮仍由外层
+   grayscale 滤镜切，图片照样吃滤镜）。小龙 64px（.小龙；飞走那团 💨 是效果字形，
+   不进这条规则）、大件 120px、小件 54px（.Boss大件/.Boss小件）、
+   城堡与冰淇淋 72px（跟动物阵同一档：48px 的贴纸在 104×96 的格子里显小）。 */
+.桥板 .板图 {
+  width: 52px;
+  height: 52px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.小龙 .龙图 {
+  width: 64px;
+  height: 64px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.Boss大件 .Boss大件图 {
+  width: 120px;
+  height: 120px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.Boss小件 .Boss小件图 {
+  width: 54px;
+  height: 54px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.Boss格 .堡图 {
+  width: 72px;
+  height: 72px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* -------------------------------------- 拍照：小朋友贴纸 + CSS 画的四色圆点
+ *
+ * 圆点**故意不出素材**：它是颜色标识，颜色本身就是答案（孩子答的是「红红拍的」），
+ * 画成插画反而削弱辨识。颜色由 拍照.js 从 座位们 的 `色` 现算着写进 background，
+ * 跟 3D 场景里那四个小朋友的身子颜色同一个出处，这里只定形状和大小。
+ *
+ * 四个座位钮共用同一张小朋友的图（他们是四个孩子，不是四种动物），谁是谁全靠色点。
+ */
+.座位钮 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* 娃图和色点跟着钮一起长（30→44、20→28）：钮抬进 80px 触靶档之后，原来那对小图
+   在里头像一枚扣子躺在盘子中间，「这是一个人」和「他是哪个颜色」两件事都得看得清 ——
+   色点尤其，这一关的答案就是那个颜色。 */
+.座位钮 .座娃图 {
+  width: 44px;
+  height: 44px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+.色点 {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex: none;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.18);
+}
+
+/* 照片右下角那颗点：原来是 22px 的 emoji，圆点也做同样大小，位置一行没动 */
+.照片主 {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}

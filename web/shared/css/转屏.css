@@ -1,0 +1,81 @@
+/* 转屏拦罩 —— 长相只写这一份，两讲共用。行为在 /shared/js/转屏.js。
+   宿主可以改色：--拦罩底 / --拦罩笔。位置不用宿主管，它永远铺满整块屏幕。
+
+   它故意留在基准舞台**外面**：舞台是被缩放过的一块画布，而这件要盖住整个屏幕，
+   包括缩放剩下的那圈补边。 */
+
+.转屏拦罩 {
+  position: fixed;
+  inset: 0;
+  z-index: 200; /* 比开始遮罩(100)还高：竖着连「开始」都不该点 */
+  display: none;
+  place-items: center;
+  background: var(--拦罩底, #103049);
+  /* 挡住一切触摸：孩子在这块上乱按不会碰到底下的游戏 */
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+
+.转屏拦罩.挡着 { display: grid; }
+
+.转屏台 {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 260px;
+  height: 260px;
+}
+
+/* 一台手机：竖着 → 转成横着 → 停一下 → 再来。动作就是那句话。 */
+.转屏手机 {
+  width: 92px;
+  height: 164px;
+  border: 7px solid var(--拦罩笔, #ffffff);
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  animation: 转手机 3s ease-in-out infinite;
+}
+
+.转屏屏 {
+  display: block;
+  width: 68px;
+  height: 128px;
+  border-radius: 7px;
+  background: var(--拦罩笔, #ffffff);
+  opacity: 0.34;
+}
+
+/* 竖着停一下 → 转成横着 → 横着停一下 → 淡出，趁看不见的时候回到竖着重来。
+   那一下「跳回竖屏」必须藏在透明里：这段动画就是给不认字的孩子的**全部**说明，
+   画面里凭空一跳，看着像坏了，而不像在教他转手机。 */
+@keyframes 转手机 {
+  0%, 18% { transform: rotate(0deg); opacity: 1; }
+  46%, 76% { transform: rotate(-90deg); opacity: 1; }
+  92%, 100% { transform: rotate(-90deg); opacity: 0; }
+}
+
+/* 一道转过去的弧线，给动作指个方向 */
+.转屏弧 {
+  position: absolute;
+  inset: 6px;
+  border: 6px dashed var(--拦罩笔, #ffffff);
+  border-radius: 50%;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  opacity: 0.42;
+  animation: 弧转 3s ease-in-out infinite;
+}
+
+/* 弧线跟着手机走，同样在末尾淡掉，两个动画同一个 3s 节拍才不会各转各的 */
+@keyframes 弧转 {
+  0%, 18% { transform: rotate(0deg); opacity: 0.42; }
+  46%, 76% { transform: rotate(-90deg); opacity: 0.2; }
+  92%, 100% { transform: rotate(-90deg); opacity: 0; }
+}
+
+/* 动画会不会晃到人：系统里关了动效就只留静态的横手机 */
+@media (prefers-reduced-motion: reduce) {
+  .转屏手机 { animation: none; transform: rotate(-90deg); }
+  .转屏弧 { animation: none; }
+}

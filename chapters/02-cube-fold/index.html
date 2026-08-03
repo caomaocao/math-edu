@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <!-- viewport-fit=cover：iPhone 横屏要铺到刘海和小黑条底下去，
+         留边的活由 env(safe-area-inset-*) 一处一处地做，不由浏览器整块让出来 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>正方体的衣服</title>
+    <!-- 共享件在前，本讲的在后 —— 本讲的 :root 覆盖才盖得住共享件的缺省色 -->
+    <link rel="stylesheet" href="/shared/css/舞台.css" />
+    <link rel="stylesheet" href="/shared/css/热区.css" />
+    <link rel="stylesheet" href="/shared/css/转屏.css" />
+    <link rel="stylesheet" href="/shared/css/麦克风坞.css" />
+    <link rel="stylesheet" href="/shared/css/语言开关.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <!-- 界面上不放句子，图标上不放字：所有的话都由 说() 念出来 -->
+
+    <!-- 开始遮罩：Chrome 要用户先动一下手才许出声。点它 = 解锁音频，方方才开得了口。 -->
+    <div class="开始遮罩" id="开始遮罩">
+      <div class="开始牌">
+        <div class="开始图" aria-hidden="true">🧊</div>
+        <button class="开始钮" id="开始钮" data-cn="开始" data-en="Start">▶</button>
+      </div>
+    </div>
+
+    <div class="外壳">
+      <!-- 左边竖排五个很大的图标。内容由 src/ui/nav.js 填进去 -->
+      <nav class="导航" id="导航"></nav>
+
+      <!--
+        五个玩法的面板叠在同一格里，切换只是换谁在前面 ——
+        谁都不从文档里拿掉，所以三维舞台从头到尾只建一次，
+        孩子切走再切回沙盒，刚才画的衣服还在原地。
+      -->
+      <div class="内容" id="内容">
+        <!-- 沙盒：打开网站默认就是它，不用先过一道菜单 -->
+        <section class="模式面板 在前" id="面板-沙盒" data-模式="沙盒" role="tabpanel">
+          <main class="沙盒">
+            <!-- 格子纸：5 列 × 4 行，点一下涂色，再点一下取消。格子由脚本填进去 -->
+            <div class="格子纸" id="格子纸"></div>
+
+            <div class="舞台" id="舞台"></div>
+
+            <!--
+              滑块按钮：老玩法（整体拖着收拢）退居二线，缩成角落一个小图标。
+              点一下底下的折叠条才滑出来，再点收起。
+            -->
+            <!-- 热区：看着还是那个 46px 的小图标，按着的范围补到 80px（/shared/css/热区.css） -->
+            <button class="滑块钮 热区" id="滑块钮" type="button" data-cn="拖着折" data-en="Drag to fold">
+              <span aria-hidden="true">🎚️</span>
+            </button>
+
+            <div class="折叠条 收着" id="折叠条">
+              <!-- 左端：摊平在地上的衣服 -->
+              <svg class="端图标" viewBox="0 0 48 48" aria-hidden="true">
+                <rect x="6" y="18" width="12" height="12" rx="2.5" />
+                <rect x="18" y="18" width="12" height="12" rx="2.5" />
+                <rect x="30" y="18" width="12" height="12" rx="2.5" />
+                <rect x="18" y="6" width="12" height="12" rx="2.5" />
+              </svg>
+
+              <!-- 折叠度：0 摊平，1 合上。step 很细，孩子才能停在任意半折状态 -->
+              <input
+                class="折叠滑块"
+                id="折叠滑块"
+                type="range"
+                min="0"
+                max="1"
+                step="0.001"
+                value="0"
+                data-cn="折叠度"
+                data-en="How far it is folded"
+              />
+
+              <!-- 右端：合上的正方体 -->
+              <svg class="端图标" viewBox="0 0 48 48" aria-hidden="true">
+                <polygon points="24,5 41,14.5 24,24 7,14.5" opacity="0.95" />
+                <polygon points="7,14.5 24,24 24,43 7,33.5" opacity="0.6" />
+                <polygon points="41,14.5 41,33.5 24,43 24,24" opacity="0.78" />
+              </svg>
+            </div>
+          </main>
+        </section>
+
+        <!--
+          另外四个玩法的挂载点，内容各自的模块填。
+          「贴水果」是新的一关（票 04 实现），先摆个淡淡的占位图标占住位子 ——
+          位子现在就得在，因为面板一旦常驻就不能中途插队重排。
+        -->
+        <section class="模式面板" id="面板-判断关" data-模式="判断关" role="tabpanel">
+          <div class="占位" aria-hidden="true">✅</div>
+        </section>
+
+        <section class="模式面板" id="面板-对面关" data-模式="对面关" role="tabpanel">
+          <div class="占位" aria-hidden="true">🍎</div>
+        </section>
+
+        <section class="模式面板" id="面板-图鉴" data-模式="图鉴" role="tabpanel">
+          <div class="占位" aria-hidden="true">📖</div>
+        </section>
+
+        <section class="模式面板" id="面板-纸样" data-模式="纸样" role="tabpanel">
+          <div class="占位" aria-hidden="true">✂️</div>
+        </section>
+      </div>
+
+      <!-- 麦克风坞：问答.js 填内容。孩子点一下才听，喊「穿衣服！」「脱衣服！」 -->
+      <div class="麦克风坞挂点" id="麦克风坞挂点"></div>
+
+      <!-- 重来：缩在左下角，小又灰，还得点两下。内容由 src/ui/nav.js 填进去 -->
+      <div class="重来角" id="重来角"></div>
+
+      <!--
+        语言开关：右上角两面旗，🇨🇳 / 🇬🇧。内容由 src/ui/nav.js 填进去。
+        单击即切，没有二次确认 —— 换语言是可逆的，一个字的进度都不动，
+        跟左下角那个「重来」的风险等级完全不同，所以也刻意长得不像它。
+      -->
+      <div id="语言角"></div>
+
+      <!--
+        家长伴读页的入口。刻意做成孩子视角里最不好玩的东西：
+        小、灰、无动效、无图标 —— 用的是「家长」两个字而不是一个 emoji，
+        因为孩子不认字，一个 📖 反而会招他去点。位置也躲开常用区，缩在右下角。
+      -->
+      <a
+        class="家长页钮"
+        id="家长页钮"
+        href="./家长.html"
+        data-cn="家长"
+        data-en="Parents"
+        data-cn-title="家长伴读页：玩法帮助与答案"
+        data-en-title="Parents' page: how to play, and the answers"
+        title="家长伴读页：玩法帮助与答案"
+        >家长</a
+      >
+
+      <!--
+        回到章节首页：同源相对路径，和挂载点无关，加新讲也不用改。
+        🏡 是孩子的钮（「上一层」，见 CLAUDE.md），所以受触靶红线管 ——
+        尺寸和悬停都搬进 styles.css 的 .回首页钮 了：行内的 onmouseenter
+        在触屏上会粘着不放，而 @media (hover: hover) 只有鼠标才进得去。
+      -->
+      <a
+        class="回首页钮"
+        href="/"
+        id="回首页钮"
+        data-cn="回到章节首页"
+        data-en="Back to the lesson list"
+        title="回到章节首页"
+        >🏡</a
+      >
+    </div>
+
+    <!--
+      导航先建好再跑 main.js：main.js 里想用的话，window.__导航 / window.__进度 已经在了。
+      两个都是自包含的，main.js 不接也照样能切玩法。
+    -->
+    <script type="module">
+      import { 创建导航, 创建重来按钮 } from './src/ui/nav.js';
+      import { 装后退 } from '/shared/js/后退.js';
+      import { 订阅语言, 选 } from '/shared/js/语言.js';
+      import { 进度 } from './src/state/progress.js';
+
+      window.__进度 = 进度;
+      window.__导航 = 创建导航(document.getElementById('导航'));
+      window.__重来 = 创建重来按钮(document.getElementById('重来角'));
+
+      /*
+        后退手势接进玩法切换（跟第 3 讲同一个共享件，见 /shared/js/后退.js）：
+        换过的玩法压成历史，后退=回上一个玩法，退完了自然回全站首页——
+        原先在纸样里一个后退手势，整讲直接被退掉。
+        从历史 这面小旗分辨「手势驱动的切换」和「点图标的切换」：
+        前者不再压历史（不然后退一次就多一条，永远退不出去）。
+        创建导航 里那次开局的 切换到(默认) 发生在订阅之前，天然不压。
+      */
+      {
+        let 从历史 = false;
+        const 层级 = 装后退({
+          起点: window.__导航.当前,
+          切到: (层) => {
+            从历史 = true;
+            try { window.__导航.切换到(层); } finally { 从历史 = false; }
+          },
+        });
+        window.__导航.订阅((键) => { if (!从历史) 层级.进(键); });
+      }
+
+      /*
+        「家长」这两个字是这一讲屏幕上仅有的一处成句文字，而且是**写给家长看的**
+        （孩子不认字，那正是它躲在右下角、又小又灰的原因）。它照样得跟着换语言：
+        英文模式下整屏还剩一个中文词，就是家长一眼看得见的那种夹生。
+        教学字符（闯关三印在格子上的数字）不在这儿 —— 那几个数字两语长得一样。
+      */
+      const 家长钮 = document.getElementById('家长页钮');
+      /** 挂着 data-cn / data-en 的那几个纯图标按钮：字只给读屏和自动化验收 */
+      const 只给读屏的 = ['开始钮', '滑块钮', '折叠滑块', '回首页钮'].map((id) =>
+        document.getElementById(id),
+      );
+
+      const 摆页面 = () => {
+        家长钮.textContent = 选({ cn: 家长钮.dataset.cn, en: 家长钮.dataset.en });
+        家长钮.title = 选({ cn: 家长钮.dataset.cnTitle, en: 家长钮.dataset.enTitle });
+        for (const 元 of 只给读屏的) {
+          if (!元) continue;
+          const 名 = 选({ cn: 元.dataset.cn, en: 元.dataset.en });
+          元.setAttribute('aria-label', 名);
+          if (元.title) 元.title = 名;
+        }
+        // 读屏、浏览器的翻译提示、标签页标题都看这两处
+        document.documentElement.lang = 选({ cn: 'zh-CN', en: 'en' });
+        document.title = 选({ cn: '正方体的衣服', en: "The cube's coat" });
+      };
+      订阅语言(摆页面);
+      摆页面(); // 上次选的就是英文的话，一进门就得是英文的
+    </script>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

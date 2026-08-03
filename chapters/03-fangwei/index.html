@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <!-- viewport-fit=cover：让画面铺到挖孔和圆角底下去，缺的那圈由安全区留边补
+         （不 cover 的话 iPhone 横屏两侧会先白掉一条，补边的渐变反而接不上） -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>空间方位大冒险</title>
+    <!-- 共享件在前，本讲的在后 —— 本讲的 :root 覆盖才盖得住共享件的缺省色 -->
+    <link rel="stylesheet" href="/shared/css/麦克风坞.css" />
+    <link rel="stylesheet" href="/shared/css/语言开关.css" />
+    <link rel="stylesheet" href="/shared/css/舞台.css" />
+    <link rel="stylesheet" href="/shared/css/热区.css" />
+    <link rel="stylesheet" href="/shared/css/转屏.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <!-- 界面上不放句子：所有指令由 说() 用童声念。要学的「东南西北」等字除外。 -->
+
+    <!-- 开始遮罩：Chrome 要用户先动一下手才许出声。点它 = 解锁音频 + 要麦克风权限。
+         它和转屏拦罩都是 .外壳 的**兄弟**，故意留在基准舞台外面：舞台是一块被缩放过
+         的画布，而这两件要盖住整块屏幕，包括缩放剩下的那圈补边。 -->
+    <div class="开始遮罩" id="开始遮罩">
+      <div class="开始牌">
+        <div class="开始图">🧭</div>
+        <button class="开始钮" id="开始钮">▶</button>
+      </div>
+    </div>
+
+    <div class="外壳">
+      <!-- 探险地图：首页。节点由 主.js 画进去。 -->
+      <section class="环节面板 在前" id="面板-地图" data-环节="地图">
+        <svg class="探险地图" id="探险地图" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid meet"></svg>
+        <!-- 重来：小又灰，点两下才真清（第一下只是问） -->
+        <div class="重来角" id="重来角"></div>
+        <!-- 家长角：伴读页 + 导读思维图 + 试音页入口，孩子不会注意到 -->
+        <div class="家长角" id="家长角">
+          <!-- 这两个字是刻意的：孩子不认字，认字的才看得懂这是给谁的。
+               也是全屏唯一一处「不是教学字符的字」，所以它也得跟着换语言。 -->
+          <a class="家长钮 家长页钮" href="./家长.html"
+             id="家长页钮" data-cn="家长" data-en="Parents"
+             data-cn-title="家长伴读页：玩法帮助与答案"
+             data-en-title="Parents' page: how to play, and the answers"></a>
+          <a class="家长钮" href="./试音.html"
+             data-cn-title="试音换音色" data-en-title="Try out the voices">🎚️</a>
+          <button class="家长钮" id="家长信息钮"
+                  data-cn-title="这一讲学什么" data-en-title="What this lesson teaches">ⓘ</button>
+        </div>
+      </section>
+
+      <!-- 14 个环节的面板：全部常驻文档，切换只换「在前」。内容各自的模块填。 -->
+      <section class="环节面板" id="面板-导读" data-环节="导读"></section>
+      <section class="环节面板" id="面板-玩偶方位" data-环节="玩偶方位"></section>
+      <section class="环节面板" id="面板-蔬菜格子" data-环节="蔬菜格子"></section>
+      <section class="环节面板" id="面板-树桩行列" data-环节="树桩行列"></section>
+      <section class="环节面板" id="面板-八大罗盘" data-环节="八大罗盘"></section>
+      <section class="环节面板" id="面板-学校地图" data-环节="学校地图"></section>
+      <section class="环节面板" id="面板-衣柜" data-环节="衣柜"></section>
+      <section class="环节面板" id="面板-货架" data-环节="货架"></section>
+      <section class="环节面板" id="面板-动物地图" data-环节="动物地图"></section>
+      <section class="环节面板" id="面板-开车" data-环节="开车"></section>
+      <section class="环节面板" id="面板-拍照" data-环节="拍照"></section>
+      <section class="环节面板" id="面板-宝藏" data-环节="宝藏"></section>
+      <section class="环节面板" id="面板-记忆" data-环节="记忆"></section>
+      <section class="环节面板" id="面板-Boss" data-环节="Boss"></section>
+
+      <!-- 回地图：环节里左上角的家。热区不动位 = 补一圈隐形的可点范围，
+           视觉一个像素不动（它自己已经 fixed 摆好了，不许再动 position）。 -->
+      <button class="回家钮 热区不动位" id="回家钮">🏡</button>
+
+      <!-- 语言开关：右上角两面旗，主.js 填内容。单击即切，不清任何东西 -->
+      <div id="语言角"></div>
+
+      <!-- 麦克风坞：问答.js 填内容，固定在底部中央 -->
+      <div class="麦克风坞挂点" id="麦克风坞挂点"></div>
+    </div>
+
+    <!-- 家长信息卡（默认收着）—— 全讲唯一一块**给大人读的散文**，所以它跟开始遮罩、
+         转屏拦罩一样待在舞台外面：舞台整块缩到手机上只剩四成四，卡里 14px 的字会变成
+         6px，家长根本读不了。留在屏幕坐标系里，字就是 14px。
+         它是 .外壳 的兄弟，z-index 60 压在舞台之上、开始遮罩(100)之下。 -->
+    <div class="家长信息卡" id="家长信息卡" hidden>
+      <h3>第3讲 · 空间方位大综合（大班）</h3>
+      <p><b>知识目标</b>：认识八大方位与行列位置；能在地图上识别空间方位。</p>
+      <p><b>能力目标</b>：空间感 · 方向感。口诀：<b>上北下南，左西右东</b>。</p>
+      <p><b>衔接</b>：中班《行列位置应用》→ 本讲 → 一年级《坐标与位置》。</p>
+      <p>对应书第 26–36 页：互动课堂例题1–3 与闯关一～五全部收录，另加三个拓展关。</p>
+      <button id="家长信息关">知道了</button>
+    </div>
+
+    <script type="module" src="./js/主.js"></script>
+  </body>
+</html>
