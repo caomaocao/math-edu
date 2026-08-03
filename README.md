@@ -1,13 +1,11 @@
 # math-edu · 给一个 5 岁孩子做的大班数学配套网站
 
-A voice-first math site built for one specific 5-year-old — born the day a
-paper-folding exercise defeated spoken language. The workbook asked which flat
-shapes fold into a cube; the parent found this impossible to explain in words,
-and mail-ordering physical teaching aids felt absurd next to the laptop already
-on the desk. So the cube became 3D and draggable — and then a whole
-lesson-by-lesson site grew around it. The child can't read yet, so everything
-is spoken aloud; answers come by voice, touch, or tap. Code is MIT; lesson
-content and AI-generated art are CC BY-NC 4.0 (see below).
+中文 · [English](#english)
+
+给自家一个还不识字的 5 岁孩子做的**语音优先**数学配套网站：每条指令都
+念出来，孩子用嘴答、用手摸、举给摄像头看。起点是一道口述不清的正方体
+折叠题（下图），后来长成了一讲一讲的完整课程。代码 MIT，课程内容与
+AI 生成图 CC BY-NC 4.0（见文末）。
 
 ![拖着折：展开图一步步合成正方体](docs/readme-assets/cube-fold.gif)
 
@@ -128,6 +126,33 @@ FastAPI 薄后端只做三件事：扫描 `chapters/` 自动挂载每一讲、�
 
 一处说明：`CLAUDE.md` 里引用的 `.scratch/` 是内部工作票目录（评审记录、
 工程票据），**不随开源仓发布**，所以你在本仓看不到它——那些引用失效是刻意的。
+
+## English
+
+A voice-first math site built for one specific 5-year-old — born the day a
+paper-folding exercise defeated spoken language. The workbook asked which flat
+shapes fold into a cube; the parent found this impossible to explain in words,
+and mail-ordering physical teaching aids felt absurd next to the laptop already
+on the desk. So the cube became 3D and draggable (the GIF at the top) — and
+then a whole lesson-by-lesson site grew around it.
+
+The child can't read yet, so every instruction is spoken aloud (cloud TTS with
+a child voice, falling back to the browser's Web Speech API when no key is
+configured); answers come by voice (cloud ASR + a language-blind judging
+engine), by touch or tap, and one activity has the child hold a folded paper
+cube up to the webcam for a vision model to admire. A single 🇨🇳/🇬🇧 toggle
+switches the whole site to a parallel English course — the taught glyphs
+东南西北 themselves become NORTH / SOUTH / EAST / WEST.
+
+The underlying idea: photograph the relevant chapters of the workbooks you
+already own, feed them to an AI to distill the essence, and let it design the
+course, levels and quizzes — the books' outlines as the foundation, AI as the
+curriculum team, a site tailored to one child as the output.
+
+Run it locally with `uv sync && uv run uvicorn math_edu.app:app --port 8300` —
+no API key needed to play. This is a personal family project: unofficial,
+feature requests not taken, forks welcome. Code is MIT; lesson content and
+AI-generated art are CC BY-NC 4.0.
 
 ## 许可证：代码 MIT，内容 CC BY-NC
 
