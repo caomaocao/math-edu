@@ -41,11 +41,11 @@ export function 创建(面板, 工具) {
               <path d="M0,-100 L15,-15 L-15,-15 Z" transform="rotate(180)"></path>
               <path d="M0,-100 L15,-15 L-15,-15 Z" transform="rotate(270)"></path>
             </g>
-            <g id="罗盘针" class="罗盘针">
-              <path d="M0,-78 L12,0 L-12,0 Z" fill="#f2604e"></path>
-              <path d="M0,78 L12,0 L-12,0 Z" fill="#9fb6c9"></path>
-              <circle r="10" fill="#35485e"></circle>
-            </g>
+          </svg>
+          <svg id="罗盘针" class="罗盘针" viewBox="-110 -110 220 220">
+            <path d="M0,-78 L12,0 L-12,0 Z" fill="#f2604e"></path>
+            <path d="M0,78 L12,0 L-12,0 Z" fill="#9fb6c9"></path>
+            <circle r="10" fill="#35485e"></circle>
           </svg>
         </div>
       </div>
@@ -56,6 +56,14 @@ export function 创建(面板, 工具) {
   const 托盘 = 面板.querySelector('#罗盘托盘');
   const 针 = 面板.querySelector('#罗盘针');
   const 点 = 做进度点(面板.querySelector('#罗盘进度'), 5);
+
+  // 槽是按一个字的大小画的圆圈，斜方位（西南这些）是两个字，原字号塞不下会折行淌出圈外
+  // ——打个记号让样式表降字号排成一行。只认「恰好两个汉字」：生活轮的箭头 emoji 和
+  // 英文课的词都不沾（英文槽的字号在 data-语="en" 那段自己管）。
+  const 填槽 = (槽, 字) => {
+    槽.textContent = 字;
+    槽.classList.toggle('两字名', /^[一-鿿]{2}$/.test(字));
+  };
 
   // 8 个槽，绕圈摆。热区不动位 = 补一圈隐形的可点范围，视觉不动
   //（槽自己已经 absolute 摆在圆周上，那个类不许动它的 position）
@@ -82,7 +90,7 @@ export function 创建(面板, 工具) {
   async function 摆一轮(还在, 造字, 定名, 提示话) {
     // 第一块（上/北）先摆好做示范
     托盘.innerHTML = '';
-    for (const 槽 of Object.values(槽们)) { 槽.textContent = ''; 槽.classList.remove('放好'); }
+    for (const 槽 of Object.values(槽们)) { 填槽(槽, ''); 槽.classList.remove('放好'); }
     const 牌们 = {};
     for (const 生 of 洗牌(生活序)) {
       // 牌子**不补隐形热区**：它自己就是 108 舞台px 的大方块，而挨着排的邻居是
@@ -95,7 +103,7 @@ export function 创建(面板, 工具) {
     // 示范：上
     const 示范 = 牌们['上'];
     示范.classList.add('放好');
-    槽们['上'].textContent = 示范.textContent;
+    填槽(槽们['上'], 示范.textContent);
     槽们['上'].classList.add('放好');
     示范.remove();
     await 说(模.示范(定名('上')));
@@ -117,7 +125,7 @@ export function 创建(面板, 工具) {
             槽.onclick = () => {
               if (槽.classList.contains('放好')) return;
               if (槽生 === 生) {
-                槽.textContent = 牌.textContent;
+                填槽(槽, 牌.textContent);
                 槽.classList.add('放好');
                 牌.remove();
                 音效.答对();

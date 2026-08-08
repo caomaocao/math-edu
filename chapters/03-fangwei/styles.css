@@ -408,7 +408,15 @@ body {
 /* 定值，同 .玩偶台 的道理（原来是 min(430px, 60vw) 两处）：八个槽按百分比绕圈摆 */
 .罗盘台 { position: relative; width: 430px; height: 430px; }
 .罗盘花 { width: 100%; height: 100%; }
-.罗盘针 { transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.3, 1); transform-origin: center; }
+/* 针是叠在花上面的**独立一层 svg**，转的是 svg 根元素，不是花里的 <g>：WebKit 解析
+   svg 内部元素的 CSS transform-origin 时不认 viewBox 的负偏移，针一转就绕着错误的
+   支点甩出 viewBox 被裁掉 —— Chrome 里一切正常，Safari 上针整个消失。svg 根元素按
+   普通盒子算 transform，哪家都绕自身中心转。pointer-events 关掉：这层盖住整个台，
+   不许它截走底下八个槽的点击。 */
+.罗盘针 {
+  position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;
+  transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
 /* 槽是要点的（选中牌子再点槽放下），64 舞台px（28pt）→ 补隐形热区，视觉不动，
    约 47pt 过线。这一处敢外扩，是因为八个槽绕着半径 44% 的圆排开，相邻两槽中心相距
    约 145 舞台px，而外扩后一个槽也只占 111 —— 谁也伸不到谁身上（对比下面的 .方位牌：
@@ -420,6 +428,10 @@ body {
   background: rgba(255, 253, 246, 0.75); cursor: pointer;
 }
 .罗盘槽.放好 { border-style: solid; border-color: var(--阳光); }
+/* 斜方位（西南这些）是两个字，30px 塞不进 64px 的圈，折成两行还淌到圈外 ——
+   降字号排成一行（44px < 圈的内宽 56px）。记号由 js 按「恰好两个汉字」打，
+   英文课的词不沾这条，字号走上面 data-语="en" 那段（特异性也压得住这条）。 */
+.罗盘槽.两字名 { font-size: 22px; white-space: nowrap; }
 /* 八块牌子必须排成**一行**（nowrap），两门课都是：折行的代价是 120 舞台px 的高度，
    这一关的列（474 + 托盘 + 进度点）本来就已经排在最高的几关里。宽度不是问题 ——
    舞台内容宽有 1232，中文课八块 948、英文课约 1100，都装得下。 */
