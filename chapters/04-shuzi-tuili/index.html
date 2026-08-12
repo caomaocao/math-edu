@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <!-- viewport-fit=cover：让画面铺到挖孔和圆角底下去（同第3讲，理由见那儿） -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>数字小火车</title>
+    <!-- 共享件在前，本讲的在后 —— 本讲的 :root 覆盖才盖得住共享件的缺省色 -->
+    <link rel="stylesheet" href="/shared/css/麦克风坞.css" />
+    <link rel="stylesheet" href="/shared/css/语言开关.css" />
+    <link rel="stylesheet" href="/shared/css/舞台.css" />
+    <link rel="stylesheet" href="/shared/css/热区.css" />
+    <link rel="stylesheet" href="/shared/css/转屏.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <!-- 界面上不放句子：所有指令由 说() 用童声念。屏幕上唯一允许的字是这一讲要教的数字。 -->
+
+    <!-- 开始遮罩：Chrome 要用户先动一下手才许出声。点它 = 解锁音频 + 要麦克风权限。 -->
+    <div class="开始遮罩" id="开始遮罩">
+      <div class="开始牌">
+        <div class="开始图">🚂</div>
+        <button class="开始钮" id="开始钮">▶</button>
+      </div>
+    </div>
+
+    <div class="外壳">
+      <!-- 铁路地图：首页。节点由 主.js 画进去。 -->
+      <section class="环节面板 在前" id="面板-地图" data-环节="地图">
+        <svg class="铁路地图" id="铁路地图" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="重来角" id="重来角"></div>
+        <div class="家长角" id="家长角">
+          <a class="家长钮 家长页钮" href="./家长.html"
+             id="家长页钮" data-cn="家长" data-en="Parents"
+             data-cn-title="家长伴读页：玩法帮助与答案"
+             data-en-title="Parents' page: how to play, and the answers"></a>
+          <a class="家长钮" href="./试音.html"
+             data-cn-title="试音换音色" data-en-title="Try out the voices">🎚️</a>
+          <button class="家长钮" id="家长信息钮"
+                  data-cn-title="这一讲学什么" data-en-title="What this lesson teaches">ⓘ</button>
+        </div>
+      </section>
+
+      <!-- 13 站的面板：全部常驻文档，切换只换「在前」。内容各自的模块填。 -->
+      <section class="环节面板" id="面板-发车站" data-环节="发车站"></section>
+      <section class="环节面板" id="面板-花圃" data-环节="花圃"></section>
+      <section class="环节面板" id="面板-果盘" data-环节="果盘"></section>
+      <section class="环节面板" id="面板-山洞" data-环节="山洞"></section>
+      <section class="环节面板" id="面板-接龙" data-环节="接龙"></section>
+      <section class="环节面板" id="面板-蘑菇" data-环节="蘑菇"></section>
+      <section class="环节面板" id="面板-长龙" data-环节="长龙"></section>
+      <section class="环节面板" id="面板-糖葫芦" data-环节="糖葫芦"></section>
+      <section class="环节面板" id="面板-装货" data-环节="装货"></section>
+      <section class="环节面板" id="面板-火车" data-环节="火车"></section>
+      <section class="环节面板" id="面板-出题官" data-环节="出题官"></section>
+      <section class="环节面板" id="面板-找错" data-环节="找错"></section>
+      <section class="环节面板" id="面板-Boss" data-环节="Boss"></section>
+
+      <!-- 回地图：环节里左上角的家。热区不动位 = 补隐形可点范围，视觉不动。 -->
+      <button class="回家钮 热区不动位" id="回家钮">🏡</button>
+
+      <!-- 语言开关：右上角两面旗，主.js 填内容。单击即切，不清任何东西 -->
+      <div id="语言角"></div>
+
+      <!-- 麦克风坞：问答.js 填内容，固定在底部中央 -->
+      <div class="麦克风坞挂点" id="麦克风坞挂点"></div>
+    </div>
+
+    <!-- 家长信息卡（默认收着）—— 全讲唯一一块给大人读的散文，故意待在舞台外面
+         （理由同第3讲：舞台缩到四成多，卡里的字会小到读不了）。 -->
+    <div class="家长信息卡" id="家长信息卡" hidden>
+      <h3>第4讲 · 数字推理（大班）</h3>
+      <p><b>知识目标</b>：发现数字排列的规律，按规律补充缺少的数字。</p>
+      <p><b>能力目标</b>：观察 · 比较 · 推理，举一反三。</p>
+      <p><b>学了什么</b>：等差数列、跳跃/双重数列、差数递增。</p>
+      <p><b>衔接</b>：小班《递变推理》→ 本讲 → 一年级《高级数字推理》。</p>
+      <p>对应书第 38–48 页：互动课堂例题1–3 与闯关一～五全部收录，另加找错车厢、终点总站两个拓展关。</p>
+      <button id="家长信息关">知道了</button>
+    </div>
+
+    <script type="module" src="./js/主.js"></script>
+  </body>
+</html>

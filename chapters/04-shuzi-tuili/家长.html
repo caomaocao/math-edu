@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>第4讲 数字小火车 · 家长伴读页</title>
+    <style>
+      /* 家长伴读页 —— 给识字的大人看的普通网页：正常字号、可长滚动、可打印。
+         不受儿童 UI 铁律约束，也不引任何脚本（答案是人工誊写的，改题库要记得回来改这里）。 */
+      :root {
+        --墨: #2c3a49; --淡墨: #61727f; --纸: #fffdf8; --底: #f2efe7; --线: #ded8ca;
+        --湖: #3d8fb8; --樱桃: #c9553f; --草: #4b8a52; --高亮: #fff3d6;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: var(--底); color: var(--墨);
+        font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+        font-size: 16px; line-height: 1.75; -webkit-text-size-adjust: 100%;
+      }
+      .纸张 {
+        max-width: 940px; margin: 0 auto; padding: 40px 48px 96px;
+        background: var(--纸); min-height: 100vh; min-height: 100dvh;
+        box-shadow: 0 0 40px rgba(44, 58, 73, 0.08);
+      }
+      .页头 { border-bottom: 3px solid var(--墨); padding-bottom: 20px; margin-bottom: 8px; }
+      .页头 .眉 { font-size: 14px; color: var(--淡墨); letter-spacing: 0.14em; }
+      .页头 h1 { font-size: 30px; margin: 6px 0 10px; line-height: 1.3; }
+      .页头 .摘 { color: var(--淡墨); font-size: 15px; margin: 0; }
+      .书页 {
+        display: inline-block; margin-top: 14px; padding: 4px 12px;
+        border: 1px solid var(--线); border-radius: 4px; font-size: 14px; color: var(--淡墨); background: #fff;
+      }
+      .提醒条 {
+        margin: 22px 0 10px; padding: 14px 18px; background: var(--高亮);
+        border-left: 4px solid #e0b64a; font-size: 14.5px; border-radius: 0 6px 6px 0;
+      }
+      .提醒条 b { color: #8a6410; }
+      nav.目录 {
+        margin: 26px 0 34px; padding: 18px 22px; background: #f7f4ec;
+        border: 1px solid var(--线); border-radius: 8px; font-size: 14.5px;
+      }
+      nav.目录 h2 { font-size: 14px; margin: 0 0 10px; letter-spacing: 0.1em; color: var(--淡墨); }
+      nav.目录 ol { margin: 0; padding-left: 20px; }
+      nav.目录 li { margin: 3px 0; }
+      nav.目录 a { color: var(--湖); text-decoration: none; }
+      @media (hover: hover) { nav.目录 a:hover { text-decoration: underline; } }
+      nav.目录 .细 { color: var(--淡墨); font-size: 13.5px; }
+      section.大段 { margin-top: 52px; }
+      section.大段 > h2 { font-size: 23px; margin: 0 0 6px; padding-bottom: 8px; border-bottom: 2px solid var(--墨); }
+      section.大段 > .段引 { color: var(--淡墨); font-size: 14.5px; margin: 0 0 22px; }
+      h3 { font-size: 18.5px; margin: 34px 0 8px; }
+      h3 .序 { display: inline-block; min-width: 26px; margin-right: 8px; color: var(--湖); font-variant-numeric: tabular-nums; }
+      p { margin: 8px 0; }
+      .阶梯 { margin: 24px 0 8px; }
+      .阶 { border-left: 4px solid var(--湖); padding: 2px 0 2px 20px; margin: 0 0 26px; }
+      .阶:nth-child(2) { border-color: #6aa9c9; }
+      .阶:nth-child(3) { border-color: #8ab86b; }
+      .阶:nth-child(4) { border-color: #d09a4b; }
+      .阶 .阶名 { font-size: 17px; font-weight: 700; margin: 0 0 2px; }
+      .阶 .阶环节 { font-size: 13.5px; color: var(--淡墨); margin: 0 0 8px; }
+      .帮助 {
+        border: 1px solid var(--线); border-radius: 8px; padding: 4px 22px 18px;
+        margin: 0 0 26px; background: #fff; break-inside: avoid;
+      }
+      .帮助 dl { margin: 10px 0 0; }
+      .帮助 dt { font-weight: 700; font-size: 14px; color: var(--湖); margin-top: 12px; letter-spacing: 0.04em; }
+      .帮助 dd { margin: 2px 0 0; }
+      .帮助 ul { margin: 4px 0; padding-left: 22px; }
+      .帮助 li { margin: 3px 0; }
+      .卡点 { color: var(--樱桃); }
+      table { width: 100%; border-collapse: collapse; margin: 12px 0 6px; font-size: 14.5px; break-inside: avoid; }
+      caption { text-align: left; font-size: 13.5px; color: var(--淡墨); padding-bottom: 6px; }
+      th, td { border: 1px solid var(--线); padding: 7px 10px; text-align: left; vertical-align: top; }
+      th { background: #f4f1e9; font-weight: 700; }
+      td.答 { font-weight: 700; color: var(--草); font-variant-numeric: tabular-nums; }
+      td.格 { font-variant-numeric: tabular-nums; white-space: nowrap; }
+      tbody tr:nth-child(even) td { background: #fbfaf6; }
+      .固定 {
+        display: inline-block; font-size: 12.5px; padding: 1px 8px; border: 1px solid #a8c9b0;
+        border-radius: 10px; color: #3c6b45; background: #f0f7f1; vertical-align: 2px; margin-left: 8px; font-weight: 400;
+      }
+      .脚注 { margin-top: 60px; padding-top: 18px; border-top: 1px solid var(--线); font-size: 13.5px; color: var(--淡墨); }
+      .回顶 { font-size: 13px; }
+      .回顶 a { color: var(--淡墨); text-decoration: none; }
+      @media (max-width: 640px) {
+        .纸张 { padding: 24px 16px 72px; box-shadow: none; }
+        .页头 h1 { font-size: 25px; }
+        .提醒条 { padding: 12px 14px; }
+        nav.目录 { padding: 14px 16px; }
+        nav.目录 li { margin: 8px 0; }
+        nav.目录 a { display: inline-block; padding: 6px 0; }
+        .回顶 a { display: inline-block; padding: 8px 0; }
+        section.大段 { margin-top: 38px; }
+        .阶 { padding-left: 14px; }
+        .帮助 { padding: 4px 14px 14px; }
+        .帮助 ul, .帮助 ol { padding-left: 18px; }
+        table th[style] { width: auto !important; }
+        table { font-size: 14px; }
+        th, td { padding: 6px 8px; }
+        caption { font-size: 13px; }
+      }
+      @media print {
+        body { background: #fff; font-size: 11.5pt; line-height: 1.55; }
+        .纸张 { max-width: none; margin: 0; padding: 0; box-shadow: none; min-height: 0; }
+        nav.目录, .回顶 { display: none; }
+        .提醒条 { background: #fff; border-left: 3px solid #000; }
+        .帮助 { border: 1px solid #999; background: #fff; }
+        .帮助 dt { color: #000; text-decoration: underline; }
+        .卡点 { color: #000; font-weight: 700; }
+        td.答 { color: #000; }
+        th { background: #eee !important; }
+        tbody tr:nth-child(even) td { background: #fff; }
+        h3 .序 { color: #000; }
+        .阶 { border-left: 3px solid #000; }
+        .固定 { border-color: #666; background: #fff; color: #000; }
+        section.大段 { break-before: page; }
+        section.大段:first-of-type { break-before: auto; }
+        h3 { break-after: avoid; }
+        a { color: #000; text-decoration: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="纸张" id="顶">
+      <header class="页头">
+        <div class="眉">大班数学 · 家长伴读页</div>
+        <h1>第4讲 数字小火车（数字推理）</h1>
+        <p class="摘">
+          十三个车站的教学大纲、操作帮助与全部答案。给陪玩的大人看，孩子看不懂也不必看。
+        </p>
+        <div class="书页">对应书页：第 38–48 页</div>
+      </header>
+
+      <div class="提醒条">
+        <b>先说清楚一件事：</b>这一页写的全部是<b>网页活动</b>的玩法和答案，不是书上练习册的答案。
+        网页把书里的四类规律重新编排成一条铁路线——题面数值忠实照搬书页，但另加了「找错车厢」「终点总站」两个自创关。
+        请不要拿这一页去对照书上的贴纸和填空，编排不一样，也不需要对得上。
+      </div>
+
+      <nav class="目录">
+        <h2>这一页有什么</h2>
+        <ol>
+          <li><a href="#大纲">教学大纲</a><span class="细">　等差 → 跳跃双线 → 双重规律 → 差数递增，四类规律的能力点</span></li>
+          <li><a href="#帮助">各站帮助</a><span class="细">　怎么操作、动手摆还是开口报、答错了怎么办</span></li>
+          <li><a href="#答案">各站答案</a><span class="细">　每道题的完整序列与要补的数，与站里的数据逐题一致</span></li>
+        </ol>
+      </nav>
+
+      <!-- ================================================================ 一、教学大纲 -->
+      <section class="大段" id="大纲">
+        <h2>一、教学大纲</h2>
+        <p class="段引">
+          「数字推理」就是<b>找规律</b>：看一串数怎么变，猜出接下来该是几。
+          这一讲把规律分成四类，由易到难。十三个车站在铁路地图上不锁顺序，
+          但推荐次序就是下面这四类。孩子卡在哪一类，回那几站多玩两遍最有用。
+        </p>
+
+        <div class="阶梯">
+          <div class="阶">
+            <p class="阶名">第一类　等差：每次多（少）一样多</p>
+            <p class="阶环节">车站：花坛数一数 · 果盘接龙 · 串糖葫芦 · 给车厢装货 · 数字火车（前三列）</p>
+            <p>
+              最基础的一类：1 2 3 4 …（每次 +1）、10 8 6 4 …（每次 −2）、10 20 30 …（每次 +10）。
+              关键是让孩子发现<b>「每一步差的一样多」</b>，而不是死记。数量题让他<b>亲手摆</b>——
+              摆出来比嘴上说更能建立数感。
+            </p>
+            <p><b>能力点：</b>发现固定的差；顺着差往下推一个 / 几个；正着数（+）和倒着数（−）都会。</p>
+          </div>
+
+          <div class="阶">
+            <p class="阶名">第二类　跳跃双线：两条线换着走，隔一个看一个</p>
+            <p class="阶环节">车站：山洞里的萝卜 · 数字接龙</p>
+            <p>
+              一串数其实是<b>两条规律交织</b>在一起：3 1 3 2 3 3 3 4 … 单看很乱，
+              拆成「3 3 3 3…」和「1 2 3 4…」两条就清楚了。这类最考观察，
+              诀窍就一句：<b>隔一个看一个</b>。网页在提示时会把两条线分开点亮，帮孩子看见。
+            </p>
+            <p><b>能力点：</b>意识到「一串数可能是两条规律拼的」；会隔项去看；分别把两条线各自续下去。</p>
+          </div>
+
+          <div class="阶">
+            <p class="阶名">第三类　双重规律：数在变，颜色也在变</p>
+            <p class="阶环节">车站：森林蘑菇</p>
+            <p>
+              一道题里藏着<b>两条规律同时成立</b>：蘑菇的数字在按规律长，蘑菇的颜色也在按规律换。
+              这类要孩子学会<b>同时盯住两个维度</b>。网页里数字规律决定答案，颜色是第二条线索。
+            </p>
+            <p><b>能力点：</b>同时留意两种属性；不被其中一条带偏；先抓主线（数）再看辅线（色）。</p>
+          </div>
+
+          <div class="阶">
+            <p class="阶名">第四类　差数递增：差本身也在长大</p>
+            <p class="阶环节">车站：森林蘑菇（篮子）· 数字火车（第四列）· 终点总站</p>
+            <p>
+              2 3 5 8 … 差不是固定的，而是 1、2、3……<b>差在一步步变大</b>。
+              这是本讲最难的一类，也是最漂亮的一类。带孩子把相邻两个数的差写在下面（1 2 3），
+              让他发现「差自己也成了一条规律」。五岁能看出来非常了不起，看不出来也完全正常。
+            </p>
+            <p><b>能力点：</b>会算相邻两数的差；发现差在等量增加；据此往下推。</p>
+          </div>
+        </div>
+
+        <h3>陪玩时可以留意的三件事</h3>
+        <ul>
+          <li><b>动手摆的题，让他真的一个一个点。</b>网页的果盘、糖葫芦、车厢是<b>点一下加一个、点掉减一个</b>，
+            摆好拉汽笛提交。别替他数，让他自己点着数，数感是这么来的。</li>
+          <li><b>报数的题，说「六」和说「6」都算对</b>，说英文 six 也算对（英文模式下）。
+            如果嗓子哑了或麦克风不灵，麦克风旁边会亮出几个<b>大数字按钮</b>，点着一样能玩。</li>
+          <li><b>星星只记「完成」，不记「全对」。</b>三次答错后网页会直接演示答案并照样过关给星星。
+            这一讲的目标是让孩子敢想敢试，不是考试。</li>
+        </ul>
+      </section>
+
+      <!-- ================================================================ 二、各站帮助 -->
+      <section class="大段" id="帮助">
+        <h2>二、各站帮助</h2>
+        <p class="段引">
+          十三个车站按铁路线的顺序排列。先看下面这段所有车站通用的部分。
+        </p>
+
+        <div class="帮助">
+          <h3>通用：两种玩法、三次机会、进度</h3>
+          <dl>
+            <dt>两种玩法，看题型自动切换</dt>
+            <dd>
+              <b>数量题</b>（果盘 / 糖葫芦 / 装货 / 出题官）——<b>动手摆</b>：点空盘/空签/空车厢加一个，点掉已放的减一个，
+              摆好点中间的<b>红色汽笛钮 🔔</b> 提交。摆对了火车就开动。<br />
+              <b>数字题</b>（花圃 / 山洞 / 接龙 / 长龙 / 火车 / 蘑菇下半 / Boss）——<b>开口报数</b>：
+              点屏幕底部的大麦克风说出那个数，说完自己停。嗓子哑了用旁边亮出的数字按钮点也行。
+            </dd>
+            <dt>答错了会怎样（三次机会）</dt>
+            <dd>
+              <b>错 1 次</b>：鼓励再试。<b>错 2 次</b>：给提示（数量题把前面几组一组一组数给他听；数字题把两条线分开点亮）。
+              <b>错 3 次</b>：直接演示正确答案，然后<b>照样过关拿星</b>，绝不卡住。
+            </dd>
+            <dt>声音、麦克风、星星</dt>
+            <dd>
+              题目全由童声念，屏幕上不写句子（孩子不认字）——<b>唯一上屏的字就是数字</b>，因为数字正是这一讲要认的。
+              断网时自动换系统朗读声继续讲。星星和进度存在这台浏览器本地，做完一站点亮一颗，集齐十三颗放烟花。
+              地图左下角灰色的 ↺ 是「重来」：<b>点第一下只是问，再点绿 ✔ 才真清</b>。
+            </dd>
+            <dt>数字长龙可以中途退出</dt>
+            <dd>其他站中途退出、再进是从头讲；只有<b>数字长龙</b>例外——它记着你填到第几行，退出再进从那一行接着来。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">00</span>🚉 出发啦（导读）<span class="固定">无题目</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>纯演示：小火车咔哒咔哒，方方念一句欢迎、一句「这一讲学什么」，讲完点亮星星、自动回地图。全程不用点。</dd>
+            <dt>卡住了怎么办</dt><dd>不会卡。重复听两三遍没问题，这段是打底的。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">01</span>🌸 花坛数一数<span class="固定">等差 +1</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>花坛一块比一块多一朵（1 2 3 4 5 6），逐块高亮数一遍，问空花坛该种几朵。<b>开口报数</b>。答对后空花坛自动种满。</dd>
+            <dt>答案</dt><dd class="答">7 朵</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">02</span>🍓 果盘接龙<span class="固定">等差 ±k · 动手摆</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>两轮。草莓盘每盘 −1，苹果盘每盘 +3。空盘子<b>点一下放一个草莓/苹果</b>，点掉减一个，摆好拉汽笛。</dd>
+            <dt>卡点</dt><dd class="卡点">草莓那轮是<b>越来越少</b>（倒着数），孩子容易顺手往多了放。提示时会把前面几盘一组一组数给他听。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">03</span>🥕 山洞里的萝卜<span class="固定">跳跃双线</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>橙萝卜和紫茄子一撮一撮换着排（书上是「蓝萝卜」，网页没有蓝萝卜的画，用紫茄子代班）。橙的一根根变多（1 2 3 4），紫的一直是 3。分别问下一撮橙的、紫的各几个。<b>开口报数</b>。</dd>
+            <dt>答案</dt><dd class="答">下一撮橙萝卜 5 根；紫茄子 3 个</dd>
+            <dt>卡点</dt><dd class="卡点">诀窍是<b>隔一个看一个</b>：只看橙的看橙的、只看紫的看紫的。提示时网页会把同色的一撮撮单独点亮。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">04</span>🎈 数字接龙<span class="固定">跳跃/周期双线</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>三条数字链，一条比一条难，末尾留几个空逐个报。全是<b>开口报数</b>。</dd>
+            <dt>卡点</dt><dd class="卡点">这三条都是「两条（或三条）规律拼起来」的，单看很乱。答错两次时网页把隔项的两条线分开点亮，带他「隔一个看一个」。答案见下方答案区。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">05</span>🌳 森林蘑菇<span class="固定">双重规律 + 差递增</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>
+              两轮。<b>上半</b>：篮子里已摘 1 2 4 7，草地上蘑菇标着 10~17，孩子<b>点出下一个该摘的蘑菇</b>（按规律是 11，再 16）。
+              <b>下半</b>：2 3 5 8 接下去，<b>开口报数</b>。
+            </dd>
+            <dt>答案</dt><dd class="答">上半：先摘 11，再摘 16；下半：12，17</dd>
+            <dt>卡点</dt><dd class="卡点">这是本讲最难的一站（差数递增：1 2 4 7 的差是 1 2 3，下一个差是 4，所以 7+4=11；再下个差 5，11+5=16）。
+              蘑菇黄蓝相间是第二条线索。孩子看不出来很正常，带他把差写在下面看。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">06</span>🐉 一到五十（数字长龙）<span class="固定">1~50 数感 · 可续行</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>1~50 排成五行大网，锚点 1/10/20/30/40/50 常亮，每行有 3 个空。<b>一行一行来</b>，把空格的数报出来。退出再进从没做完的那一行接着来。</dd>
+            <dt>卡点</dt><dd class="卡点">跨十的地方（9→10、19→20…）是坎。带他顺着念下去，念到空格停一下让他接。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">07</span>🍒 串糖葫芦<span class="固定">等差 −2 · 动手摆</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>两轮。山楂串 10 8 [6] 4 2（双数每串少 2），橘瓣串 9 7 5 [3] 1（单数每串少 2）。空竹签<b>点一下串一个</b>，点掉减一个，串好拉汽笛。</dd>
+            <dt>答案</dt><dd class="答">山楂串该串 6 颗；橘瓣串该串 3 瓣</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">08</span>🚗 给车厢装货<span class="固定">递增塔 +1 · 动手摆</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>三轮，货一节比一节高。草莓塔 0 1 2 3 4 →摆 5、6；钻石塔 4 5 6 →摆 7、8、9；蘑菇堆 5 6 7 8 →摆 9、10。空车厢<b>点一下装一个</b>，装好拉汽笛。只求数量对，堆歪了没关系。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">09</span>🚀 数字火车<span class="固定">等差 + 差递增</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>四列火车，有的车厢牌子空着，把空牌的数报出来。<b>开口报数</b>。前三列是等差，第四列是差递增。答案见下方答案区。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">10</span>🎁 小小出题官<span class="固定">创作 · 记完成不记对错</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>
+              换孩子当出题官：给五节车厢<b>随便装草莓</b>（点一下装一个），编一道自己的规律题，拉汽笛。
+              网页认出是规律就夸「好题」并自动盖住中间一节；认不出也照样夸，请孩子自己点一节盖住。
+              然后<b>喊爸爸来猜</b>，爸爸答完，<b>由孩子点绿勾/红叉当裁判</b>。
+            </dd>
+            <dt>要点</dt><dd>机器<b>不判爸爸对错</b>，判分权在孩子手里。孩子乱摆一气也照样发星——这一站鼓励的是创造，不是正确。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">11</span>🐦 找错车厢<span class="固定">举一反三</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>六列火车各按一条规律装货，其中一节装错了。孩子<b>点出装错的那节</b>，它会摇一摇认错、自动改对。点错了温柔提醒，点错三次直接点出来演示。</dd>
+            <dt>卡点</dt><dd class="卡点">先带他找出「大部分怎么变」，再看哪一节不守这个变法。答案（每列哪节错、该是几）见下方答案区。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">12</span>🏰 终点总站（Boss）<span class="固定">四类混合 · 8 题</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>把四类规律混在一起连闯 8 题：前两道<b>动手摆</b>（点着装货、拉汽笛），后六道<b>开口报数</b>。答对一道往前开一节；中途退出再进，闯到第几题还记得。八道全过 → 通关。集齐全章十三颗星放大烟花和奖杯。</dd>
+            <dt>卡点</dt><dd class="卡点">题型跳来跳去，孩子要先判断「这是哪一类规律」。答不出别急，三次后会演示。答案见下方答案区。</dd>
+          </dl>
+        </div>
+      </section>
+
+      <!-- ================================================================ 三、各站答案 -->
+      <section class="大段" id="答案">
+        <h2>三、各站答案</h2>
+        <p class="段引">每道题的完整序列，<b>方括号 [ ] 里就是要孩子补的数</b>。数值与站里的数据逐题一致。</p>
+
+        <table>
+          <caption>互动课堂（例题 + 练一练）</caption>
+          <thead><tr><th style="width:12em">车站</th><th>题面</th><th style="width:9em">答案</th></tr></thead>
+          <tbody>
+            <tr><td>花坛数一数</td><td class="格">1 2 3 4 5 6 [ ]</td><td class="答">7</td></tr>
+            <tr><td>果盘（草莓）</td><td class="格">10 9 8 7 [6] [5] 4</td><td class="答">6、5</td></tr>
+            <tr><td>果盘（苹果）</td><td class="格">3 6 9 [12] 15</td><td class="答">12</td></tr>
+            <tr><td>山洞（橙萝卜）</td><td class="格">1 2 3 4 [ ]</td><td class="答">5</td></tr>
+            <tr><td>山洞（紫茄子）</td><td class="格">3 3 3 [ ]</td><td class="答">3</td></tr>
+            <tr><td>森林蘑菇（上半）</td><td class="格">篮子 1 2 4 7，接着摘 [ ] [ ]</td><td class="答">11、16</td></tr>
+            <tr><td>森林蘑菇（下半）</td><td class="格">2 3 5 8 [ ] [ ]</td><td class="答">12、17</td></tr>
+          </tbody>
+        </table>
+
+        <table>
+          <caption>数字接龙（三条）</caption>
+          <thead><tr><th>题面</th><th style="width:9em">接下去</th></tr></thead>
+          <tbody>
+            <tr><td class="格">3 1 3 2 3 3 3 4 …</td><td class="答">3 5 3 6</td></tr>
+            <tr><td class="格">10 2 10 4 10 6 10 8 …</td><td class="答">10 10 10 12</td></tr>
+            <tr><td class="格">5 5 1 5 5 3 5 5 5 5 5 7 …</td><td class="答">5 5 9</td></tr>
+          </tbody>
+        </table>
+
+        <table>
+          <caption>数字长龙（每行 3 个空，锚点常亮）</caption>
+          <thead><tr><th style="width:6em">行</th><th>要补的数</th></tr></thead>
+          <tbody>
+            <tr><td>第 1 行</td><td class="答">3、6、9</td></tr>
+            <tr><td>第 2 行</td><td class="答">13、16、19</td></tr>
+            <tr><td>第 3 行</td><td class="答">23、26、29</td></tr>
+            <tr><td>第 4 行</td><td class="答">33、36、39</td></tr>
+            <tr><td>第 5 行</td><td class="答">43、46、49</td></tr>
+          </tbody>
+        </table>
+
+        <table>
+          <caption>闯关：糖葫芦 / 车厢装货 / 数字火车</caption>
+          <thead><tr><th style="width:12em">车站</th><th>题面</th><th style="width:9em">答案</th></tr></thead>
+          <tbody>
+            <tr><td>糖葫芦（山楂）</td><td class="格">10 8 [6] 4 2</td><td class="答">6</td></tr>
+            <tr><td>糖葫芦（橘瓣）</td><td class="格">9 7 5 [3] 1</td><td class="答">3</td></tr>
+            <tr><td>装货（草莓）</td><td class="格">0 1 2 3 4 [5] [6]</td><td class="答">5、6</td></tr>
+            <tr><td>装货（钻石）</td><td class="格">4 5 6 [7] [8] [9]</td><td class="答">7、8、9</td></tr>
+            <tr><td>装货（蘑菇）</td><td class="格">5 6 7 8 [9] [10]</td><td class="答">9、10</td></tr>
+            <tr><td>数字火车 ⑴</td><td class="格">10 20 [30] 40 50 [60] 70</td><td class="答">30、60</td></tr>
+            <tr><td>数字火车 ⑵</td><td class="格">5 10 [15] 20 [25] 30 [35]</td><td class="答">15、25、35</td></tr>
+            <tr><td>数字火车 ⑶</td><td class="格">2 5 8 11 [14] [17]</td><td class="答">14、17</td></tr>
+            <tr><td>数字火车 ⑷</td><td class="格">1 2 4 7 11 [16]</td><td class="答">16</td></tr>
+          </tbody>
+        </table>
+
+        <table>
+          <caption>找错车厢（六列，哪一节装错、本该是几）</caption>
+          <thead><tr><th>显示的一列（含错值）</th><th style="width:12em">错在哪 → 应是</th></tr></thead>
+          <tbody>
+            <tr><td class="格">2 4 <b>7</b> 8 10</td><td class="答">第 3 节 → 6</td></tr>
+            <tr><td class="格">20 18 16 <b>15</b> 12</td><td class="答">第 4 节 → 14</td></tr>
+            <tr><td class="格">1 2 4 <b>8</b> 11（草莓）</td><td class="答">第 4 节 → 7</td></tr>
+            <tr><td class="格">3 1 3 2 <b>9</b> 3 3 4</td><td class="答">第 5 节 → 3</td></tr>
+            <tr><td class="格">10 <b>25</b> 30 40 50</td><td class="答">第 2 节 → 20</td></tr>
+            <tr><td class="格">2 3 5 8 <b>15</b>（钻石）</td><td class="答">第 5 节 → 12</td></tr>
+          </tbody>
+        </table>
+
+        <table>
+          <caption>终点总站 Boss（8 题混合，报下一个数）</caption>
+          <thead><tr><th>题面</th><th style="width:7em">答案</th><th style="width:8em">规律</th></tr></thead>
+          <tbody>
+            <tr><td class="格">1 2 3 4 [ ]（摆草莓）</td><td class="答">5</td><td>等差 +1</td></tr>
+            <tr><td class="格">2 4 6 8 [ ]（摆钻石）</td><td class="答">10</td><td>等差 +2</td></tr>
+            <tr><td class="格">30 25 20 15 [ ]</td><td class="答">10</td><td>等差 −5</td></tr>
+            <tr><td class="格">10 20 30 40 [ ]</td><td class="答">50</td><td>等差 +10</td></tr>
+            <tr><td class="格">3 4 6 9 [ ]</td><td class="答">13</td><td>差递增</td></tr>
+            <tr><td class="格">4 5 7 10 [ ]</td><td class="答">14</td><td>差递增</td></tr>
+            <tr><td class="格">5 1 5 2 5 3 [ ]</td><td class="答">5</td><td>跳跃双线</td></tr>
+            <tr><td class="格">5 1 5 2 5 3 5 [ ]</td><td class="答">4</td><td>跳跃双线</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <p class="脚注">
+        这一页跟着网页的题库走：题目数据改了，这里的答案要一起改。
+        <span class="回顶"><a href="#顶">↑ 回到顶部</a></span>
+      </p>
+    </div>
+  </body>
+</html>

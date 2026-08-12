@@ -39,6 +39,7 @@ function 去注释(源) {
 /** 放行名单：每条都得写清为什么它在舞台外 */
 const 放行 = [
   { 文件: 'chapters/03-fangwei/styles.css', 片段: 'html, body', 因为: 'html/body 的高在舞台外，铺的是整块屏幕' },
+  { 文件: 'chapters/04-shuzi-tuili/styles.css', 片段: 'html, body', 因为: 'html/body 的高在舞台外，铺的是整块屏幕' },
   // 第2讲的 html/body 用的是 height: 100%，本来就没有视口单位，所以这儿不需要它的条目。
 ];
 

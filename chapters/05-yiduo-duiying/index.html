@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <!-- viewport-fit=cover：让画面铺到挖孔和圆角底下去（同第 3/4 讲，理由见那儿） -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>森林营地野餐会</title>
+    <!-- 共享件在前，本讲的在后 —— 本讲的 :root 覆盖才盖得住共享件的缺省色 -->
+    <link rel="stylesheet" href="/shared/css/麦克风坞.css" />
+    <link rel="stylesheet" href="/shared/css/语言开关.css" />
+    <link rel="stylesheet" href="/shared/css/舞台.css" />
+    <link rel="stylesheet" href="/shared/css/热区.css" />
+    <link rel="stylesheet" href="/shared/css/转屏.css" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <!-- 界面上不放句子：所有指令由 说() 用童声念。屏幕上唯一允许的字是数字（04 的豁免口径）。 -->
+
+    <!-- 开始遮罩：Chrome 要用户先动一下手才许出声。点它 = 解锁音频 + 要麦克风权限。 -->
+    <div class="开始遮罩" id="开始遮罩">
+      <div class="开始牌">
+        <div class="开始图">⛺</div>
+        <button class="开始钮" id="开始钮">▶</button>
+      </div>
+    </div>
+
+    <div class="外壳">
+      <!-- 营地地图：首页。节点由 主.js 画进去。 -->
+      <section class="环节面板 在前" id="面板-地图" data-环节="地图">
+        <svg class="营地地图" id="营地地图" viewBox="0 0 1200 680" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="重来角" id="重来角"></div>
+        <div class="家长角" id="家长角">
+          <a class="家长钮 家长页钮" href="./家长.html"
+             id="家长页钮" data-cn="家长" data-en="Parents"
+             data-cn-title="家长伴读页：玩法帮助与答案"
+             data-en-title="Parents' page: how to play, and the answers"></a>
+          <button class="家长钮" id="家长信息钮"
+                  data-cn-title="这一讲学什么" data-en-title="What this lesson teaches">ⓘ</button>
+        </div>
+      </section>
+
+      <!-- 11 站的面板：全部常驻文档，切换只换「在前」。内容各自的站点模块填。
+           ==== 并行热点（票 02 的约定）：挂点一次开好，后票（04~08）只填自己那个
+           面板对应的 js/站/<号>.js 与 styles.css 里自己的分段，不改这份骨架。 ==== -->
+      <section class="环节面板" id="面板-开营站" data-环节="开营站"></section>
+      <section class="环节面板" id="面板-帐篷站" data-环节="帐篷站"></section>
+      <section class="环节面板" id="面板-熊猫竹林" data-环节="熊猫竹林"></section>
+      <section class="环节面板" id="面板-兔子草地" data-环节="兔子草地"></section>
+      <section class="环节面板" id="面板-分饭站" data-环节="分饭站"></section>
+      <section class="环节面板" id="面板-喂食站" data-环节="喂食站"></section>
+      <section class="环节面板" id="面板-松果虫虫站" data-环节="松果虫虫站"></section>
+      <section class="环节面板" id="面板-果盘数数" data-环节="果盘数数"></section>
+      <section class="环节面板" id="面板-腿腿站" data-环节="腿腿站"></section>
+      <section class="环节面板" id="面板-蛋糕派对" data-环节="蛋糕派对"></section>
+      <section class="环节面板" id="面板-Boss" data-环节="Boss"></section>
+
+      <!-- 回地图：站里左上角的家。热区不动位 = 补隐形可点范围，视觉不动。 -->
+      <button class="回家钮 热区不动位" id="回家钮">🏡</button>
+
+      <!-- 语言开关：右上角两面旗，主.js 填内容。单击即切，不清任何东西 -->
+      <div id="语言角"></div>
+
+      <!-- 麦克风坞：问答.js 填内容，固定在底部中央 -->
+      <div class="麦克风坞挂点" id="麦克风坞挂点"></div>
+    </div>
+
+    <!-- 家长信息卡（默认收着）—— 全讲唯一一块给大人读的散文，故意待在舞台外面
+         （理由同第 3/4 讲：舞台缩到四成多，卡里的字会小到读不了）。 -->
+    <div class="家长信息卡" id="家长信息卡" hidden>
+      <h3>第5讲 · 一多对应（大班）</h3>
+      <p><b>知识目标</b>：理解一一对应与一多对应，会用对应关系做配对和平均分。</p>
+      <p><b>能力目标</b>：观察 · 配对 · 分组数数，横着数竖着数的换位思考。</p>
+      <p><b>学了什么</b>：一一对应、一多对应、平均分（多对一）、「几个几」的两种数法。</p>
+      <p><b>衔接</b>：对应与平均分是乘法、除法思维的起点。</p>
+      <p>对应书第 49–60 页：互动课堂例题1–3 与闯关一～五全部收录，另加篝火晚会混合大闯关。</p>
+      <button id="家长信息关">知道了</button>
+    </div>
+
+    <script type="module" src="./js/主.js"></script>
+  </body>
+</html>

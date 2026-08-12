@@ -1,0 +1,525 @@
+/* 数字小火车 —— 复古蒸汽火车 + 糖果色。鼠标和手指同为一等输入（docs/adr/0004）：
+   整讲画在一个 1280×760 的基准舞台上等比缩放，hover 只做装饰、一律包进
+   @media (hover: hover)，孩子要点的东西够他的手指按得准。
+
+   ┌ 触靶这笔账，照抄之前先读一遍 ────────────────────────────────────────────┐
+   │ 红线是**物理的**：最小那台手机上 ≥44pt（Apple 的下限）。「多少舞台px」都是这条
+   │ 红线在**本讲基准高 760** 下的换算结果 —— 别抄第2讲（740→92）或第3讲（842→104）。
+   │
+   │ 最小那台：iPhone 17 Pro 横屏 874×402pt，减掉工具栏可视约 358pt 高。
+   │ 系数 = 358 / 760 ≈ 0.471。于是：
+   │   · 光靠**看得见的尺寸**达标 → 要 ≥94 舞台px（94 × 0.471 ≈ 44pt）
+   │   · 补了隐形热区的（/shared/css/热区.css，外扩自除系数、白得约 20pt）→ ≥55 舞台px 够
+   │
+   │ 两条路怎么挑：**邻居是不是另一个答案。** 是（一排数字瓦片、一排答案格）就真放大
+   │ 到 94；不是（导航、汽笛钮、重听、拖件）就补热区，视觉一个像素不动。
+   │
+   │ 基准高 760 是被最高那一站（糖葫芦竖串 10 颗 ≈ 500 + 上下留边 174）顶出来的。
+   │ **动那个数就回来把这一整段重算一遍。**
+   └────────────────────────────────────────────────────────────────────────┘
+
+   两件事这份文件里刻意**不写**（写了就是两份必漂移）：触屏卫生在 /shared/css/舞台.css；
+   隐形热区的做法在 /shared/css/热区.css，这儿只挑哪些元素用、外扩多少。
+   还有一条：**舞台里面不许出现 vw / vh**（量的是真屏幕，跟缩放差一个系数）。 */
+
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+:root {
+  --天: #cfeaff;
+  --奶油: #fff7e8;
+  --纸: #fffdf6;
+  --墨: #3a3f46;
+  --车红: #e0533f;
+  --薄荷: #a9e0c4;
+  --柠檬: #ffd45e;
+  --铁轨: #8a6d4c;
+  --湖: #3f9fd6;
+  --圆角: 22px;
+  --软影: 0 10px 30px rgba(58, 63, 70, 0.16);
+
+  /* 坞与安全区躲让的 --躲上/下/左/右 在 /shared/css/舞台.css —— 两讲共用一份公式。 */
+}
+
+html, body { height: 100dvh; }
+
+/* 渐变留在 body 上，补边看不出接缝（舞台自己透明，理由见 /shared/css/舞台.css 头）。 */
+body {
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  color: var(--墨);
+  background: linear-gradient(#d6efff, #eafbe4 68%, #fdf3d6);
+  overflow: hidden;
+}
+
+/* ---------------------------------------------------------------- 开始遮罩 */
+
+.开始遮罩 {
+  position: fixed; inset: 0; z-index: 100;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 50% 40%, #d9efff, #96cff2);
+}
+.开始牌 { text-align: center; }
+.开始图 { font-size: 110px; animation: 飘 3s ease-in-out infinite; }
+.开始钮 {
+  margin-top: 26px; width: 130px; height: 130px; border: none; border-radius: 50%;
+  font-size: 52px; color: white; cursor: pointer;
+  background: linear-gradient(var(--柠檬), #ff9f43);
+  box-shadow: 0 12px 0 #e0862f, var(--软影);
+  animation: 心跳 1.6s ease-in-out infinite;
+}
+.开始钮:active { transform: translateY(8px); box-shadow: 0 4px 0 #e0862f; }
+@keyframes 心跳 { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.07); } }
+@keyframes 飘 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+
+/* ---------------------------------------------------------------- 面板切换（只换在前，不销毁） */
+
+.环节面板 {
+  position: absolute; inset: 0;
+  visibility: hidden; pointer-events: none;
+}
+.环节面板.在前 { visibility: visible; pointer-events: auto; }
+
+/* ---------------------------------------------------------------- 铁路地图 */
+
+.铁路地图 { width: 100%; height: 100%; display: block; }
+
+.地图节点 { cursor: pointer; }
+/* 看不见但接得住手指的大圆（半径由 主.js 的 画节点 定，那儿算了账）。 */
+.地图节点 .节点热区 { fill: transparent; pointer-events: all; }
+.地图节点 .节点圈 {
+  fill: var(--纸); stroke: #fff; stroke-width: 5;
+  filter: drop-shadow(0 6px 10px rgba(58, 63, 70, 0.25));
+  transition: transform 0.18s ease;
+}
+@media (hover: hover) {
+  .地图节点:hover .节点圈 { transform: scale(1.12); transform-origin: center; transform-box: fill-box; }
+}
+.地图节点 .节点图 { font-size: 44px; pointer-events: none; }
+.地图节点 .节点星 { font-size: 26px; pointer-events: none; }
+.地图节点.没星 .节点星 { opacity: 0.18; filter: grayscale(1); }
+.地图节点.有星 .节点星 { animation: 星星弹 0.5s ease; }
+@keyframes 星星弹 { 0% { transform: scale(0); } 70% { transform: scale(1.5); } 100% { transform: scale(1); } }
+/* 只差 Boss 一颗星时它发光召唤（主.js 的 刷星星 挂类） */
+.地图节点.召唤 .节点圈 { animation: 召唤脉冲 1.4s ease-in-out infinite; }
+@keyframes 召唤脉冲 {
+  0%, 100% { filter: drop-shadow(0 6px 10px rgba(58, 63, 70, 0.25)); }
+  50% { filter: drop-shadow(0 0 22px var(--柠檬)) brightness(1.15); }
+}
+/* 地图上的小火车标（贴纸图，长相归素材管）：只留换站时滑过去的过渡 */
+.小火车头 { transition: transform 0.5s ease; }
+
+/* ---------------------------------------------------------------- 通用车站布景 */
+
+.舞台布 {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 18px; padding: 24px 24px 150px;
+}
+.大画框 {
+  background: var(--纸); border-radius: var(--圆角); box-shadow: var(--软影);
+  padding: 22px; max-width: min(1120px, 100%); max-height: 100%;
+  display: grid; place-items: center;
+  /* 防呆下限：内容如果一瞬间是空的（各站现在都已改成先摆台子后开口，正常不该发生），
+     这块画框不许塌成只剩 padding 的一个圆角小方块——那样孩子会以为卡住了。
+     280×200 只是「看得出这是块留白的卡片」的下限，不是任何一站的真实内容尺寸。 */
+  min-width: 280px; min-height: 200px;
+}
+
+/* 站里的大标题数字条（题面里唯一允许上屏的字就是数字）。 */
+.数字条 { display: flex; gap: 14px; align-items: center; justify-content: center; flex-wrap: wrap; }
+.数瓦 {
+  min-width: 74px; height: 92px; padding: 0 10px; border-radius: 16px;
+  display: grid; place-items: center; font-size: 46px; font-weight: 800; color: var(--墨);
+  background: var(--纸); box-shadow: var(--软影);
+}
+.数瓦.空 { color: transparent; background: repeating-linear-gradient(45deg, #efe7d4, #efe7d4 8px, #f7f1e4 8px, #f7f1e4 16px); }
+.数瓦.当前 { outline: 5px solid var(--湖); animation: 心跳 1.3s ease-in-out infinite; }
+.数瓦.填好 { color: var(--车红); animation: 星星弹 0.4s ease; }
+
+/* 小房子常驻：关里=回地图，地图上=回全站首页。64 舞台px + 热区（邻居是画面不是答案）。 */
+.回家钮 {
+  position: fixed; z-index: 40;
+  left: calc(16px + var(--躲左)); top: calc(16px + var(--躲上));
+  width: 64px; height: 64px; border: none; border-radius: 50%;
+  font-size: 30px; cursor: pointer; background: var(--纸);
+  box-shadow: var(--软影);
+}
+@media (hover: hover) { .回家钮:hover { transform: scale(1.08); } }
+
+/* 麦克风坞：长相在 /shared/css/麦克风坞.css，这儿只接本讲调色板 + 抬离 home 指示线。 */
+:root { --坞纸: var(--纸); --坞软影: var(--软影); }
+.麦克风坞挂点 { --坞离地: calc(18px + var(--躲下)); }
+
+/* 提交钮（共享摆放引擎的交卷键 .提交钮，本讲注入成汽笛）—— 圆钮，红身金环，
+   按下去像拉响汽笛。94 舞台px 真达标。 */
+.提交钮 {
+  border: none; border-radius: 999px; padding: 0 26px; height: 94px; min-width: 94px;
+  font-size: 40px; cursor: pointer; color: white;
+  background: linear-gradient(var(--车红), #c33f2d);
+  box-shadow: 0 8px 0 #9c3222, var(--软影);
+}
+.提交钮:active { transform: translateY(6px); box-shadow: 0 2px 0 #9c3222; }
+.提交钮:disabled { opacity: 0.5; box-shadow: var(--软影); }
+@media (hover: hover) { .提交钮:hover:not(:disabled) { filter: brightness(1.05); } }
+
+/* ---------------------------------------------------------------- 重来 & 家长角 */
+
+.重来角 {
+  position: fixed; z-index: 40; display: flex; gap: 10px;
+  left: calc(14px + var(--躲左)); bottom: calc(14px + var(--躲下));
+}
+/* 重来和家长钮**故意做小**（44 舞台px，缩放后不到 20pt，孩子按不准正是要的），
+   触靶红线不适用 —— 这是功能不是缺陷（docs/adr/0004）。 */
+.重来角 button {
+  width: 44px; height: 44px; border: none; border-radius: 50%; cursor: pointer;
+  font-size: 20px; background: #e7e0d2; color: #8b8168; opacity: 0.65;
+}
+@media (hover: hover) { .重来角 button:hover { opacity: 1; } }
+.重来角 .真清 { background: #9bd77f; }
+.重来角 .算了 { background: #e0e0e0; }
+
+.家长角 {
+  position: fixed; z-index: 40; display: flex; gap: 10px;
+  right: calc(14px + var(--躲右)); bottom: calc(14px + var(--躲下));
+}
+.家长钮 {
+  width: 44px; height: 44px; border: none; border-radius: 50%; cursor: pointer;
+  font-size: 20px; background: #e7e0d2; color: #8b8168; opacity: 0.55;
+  display: grid; place-items: center; text-decoration: none;
+}
+@media (hover: hover) { .家长钮:hover { opacity: 1; } }
+/* 家长伴读页入口：给字号、不给色彩 —— 孩子不被灰字吸引，认字的大人一眼找得到。 */
+.家长页钮 {
+  width: auto; min-width: 44px; padding: 0 12px; border-radius: 14px;
+  font-size: 15px; line-height: 1; letter-spacing: 1px;
+  white-space: nowrap; opacity: 0.85;
+}
+:root[data-语='en'] .家长页钮 { letter-spacing: 0; padding: 0 14px; }
+
+/* 家长信息卡**在舞台外面**（散文给大人读，px 是真屏幕的 px，env() 直接用）。 */
+.家长信息卡 {
+  position: fixed; right: 20px; z-index: 60; width: 380px;
+  bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+  background: var(--纸); border-radius: var(--圆角); box-shadow: var(--软影);
+  padding: 20px; font-size: 14px; line-height: 1.7;
+}
+.家长信息卡 h3 { margin-bottom: 8px; }
+.家长信息卡 button {
+  margin-top: 10px; padding: 8px 18px; border: none; border-radius: 12px;
+  background: var(--湖); color: white; cursor: pointer; font-size: 14px;
+}
+
+/* ---------------------------------------------------------------- 语言开关 */
+
+.语言开关 {
+  position: fixed; z-index: 45;
+  right: calc(14px + var(--躲右)); top: calc(14px + var(--躲上));
+  --旗底: rgba(255, 253, 246, 0.9);
+  --旗影: var(--软影);
+  --旗选中底: rgba(58, 63, 70, 0.09);
+  --旗号: 26px;
+}
+
+/* ---------------------------------------------------------------- 通用小部件 */
+
+.提示中 { animation: 提示闪 0.9s ease-in-out 3; }
+@keyframes 提示闪 { 0%, 100% { filter: none; } 50% { filter: drop-shadow(0 0 18px var(--柠檬)) brightness(1.2); } }
+.对了 { animation: 对了弹 0.5s ease; }
+@keyframes 对了弹 { 0% { transform: scale(1); } 40% { transform: scale(1.3) rotate(-5deg); } 100% { transform: scale(1); } }
+
+/* 满屏庆祝层（在舞台外面，距离量真屏幕高，写进 --落多远，理由同第3讲）。 */
+.庆祝层 { position: fixed; inset: 0; z-index: 90; pointer-events: none; overflow: hidden; }
+.纸屑 { position: absolute; top: -40px; font-size: 30px; animation: 落纸屑 linear forwards; }
+@keyframes 落纸屑 { to { transform: translateY(var(--落多远, 900px)) rotate(720deg); } }
+.大奖牌 {
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  z-index: 91; text-align: center; pointer-events: auto; cursor: pointer;
+  background: var(--纸); border-radius: 30px; box-shadow: var(--软影); padding: 40px 60px;
+  animation: 星星弹 0.6s ease;
+}
+.大奖牌 .奖杯 { font-size: 90px; }
+.大奖牌 .奖星 { font-size: 26px; letter-spacing: 4px; margin-top: 10px; max-width: 520px; line-height: 1.6; }
+
+/* 进度点：一排小圆点，做一题亮一颗。 */
+.进度点挂 { min-height: 26px; }
+.进度点排 { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.进度点 { width: 18px; height: 18px; border-radius: 50%; background: rgba(58, 63, 70, 0.15); }
+.进度点.亮 { background: var(--柠檬); box-shadow: 0 0 10px var(--柠檬); animation: 星星弹 0.4s ease; }
+
+/* ---------------------------------------------------------------- 发车站（导读） */
+
+.发车台 { position: relative; width: 720px; height: 360px; }
+.发车轨 {
+  position: absolute; left: 0; right: 0; bottom: 90px; height: 14px;
+  background: repeating-linear-gradient(90deg, var(--铁轨) 0 8px, transparent 8px 26px), var(--奶油);
+  border-radius: 6px;
+}
+.发车头 {
+  position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%);
+  width: 260px; height: 150px; animation: 咔哒 0.5s steps(2) infinite;
+}
+@keyframes 咔哒 { 0%, 100% { transform: translateX(-50%); } 50% { transform: translateX(calc(-50% + 3px)) translateY(-2px); } }
+.车身 { position: absolute; left: 40px; bottom: 26px; width: 200px; height: 84px; border-radius: 14px 20px 8px 8px; background: var(--车红); box-shadow: var(--软影); }
+.车头前 { position: absolute; left: 0; bottom: 26px; width: 56px; height: 60px; border-radius: 12px 4px 4px 12px; background: #c33f2d; }
+.车窗 { position: absolute; left: 150px; bottom: 66px; width: 44px; height: 34px; border-radius: 8px; background: var(--天); border: 4px solid #fff; }
+.烟囱 { position: absolute; left: 70px; bottom: 108px; width: 30px; height: 34px; border-radius: 6px 6px 0 0; background: #3a3f46; }
+.烟 { position: absolute; left: 78px; width: 22px; height: 22px; border-radius: 50%; background: #d7d2c8; opacity: 0; }
+.烟1 { bottom: 146px; animation: 冒烟 2s ease-in-out infinite; }
+.烟2 { bottom: 146px; left: 92px; animation: 冒烟 2s ease-in-out 0.6s infinite; }
+.烟3 { bottom: 146px; left: 64px; animation: 冒烟 2s ease-in-out 1.2s infinite; }
+@keyframes 冒烟 { 0% { opacity: 0; transform: translateY(0) scale(0.6); } 40% { opacity: 0.8; } 100% { opacity: 0; transform: translateY(-60px) scale(1.3); } }
+.轮 { position: absolute; bottom: 6px; width: 34px; height: 34px; border-radius: 50%; background: #3a3f46; border: 5px solid #6b7078; animation: 转轮 0.6s linear infinite; }
+.轮1 { left: 60px; } .轮2 { left: 120px; } .轮3 { left: 180px; }
+@keyframes 转轮 { to { transform: rotate(360deg); } }
+
+/* ====== 以下按站分段追加，各站只动自己的段（并行热点，别都堆到文件尾）====== */
+
+/* ---------------------------------------------------------------- 数字接龙 */
+
+.接龙条 { max-width: 100%; }
+/* 隔项高亮的另一条线压暗，「隔一个看一个」看得清 */
+.数瓦.另一线 { opacity: 0.3; }
+
+/* ---------------------------------------------------------------- 数字火车 */
+
+.火车列 { display: flex; align-items: flex-end; gap: 8px; max-width: 100%; }
+/* 一个小 CSS 火车头（没有 emoji），跟发车站 .发车头 同一套视觉词汇（车舱+窗+烟囱+轮），
+   只是缩小、去掉冒烟动画——原来只有一块红方块顶一块深色方块，家长反馈完全认不出是火车。
+   五个部件用真实子元素（不是伪元素）拼，长相才立得住：车舱在后、车身在前、烟囱在车身上、
+   两个轮子在下面。 */
+.火车头小 { position: relative; width: 104px; height: 92px; flex: none; }
+.头身 {
+  position: absolute; left: 10px; bottom: 22px; width: 78px; height: 34px;
+  border-radius: 6px 16px 4px 4px; background: var(--车红); box-shadow: var(--软影);
+}
+.头舱 {
+  position: absolute; left: 16px; bottom: 50px; width: 32px; height: 28px;
+  border-radius: 8px 8px 0 0; background: var(--车红);
+}
+.头窗 {
+  position: absolute; left: 23px; bottom: 57px; width: 18px; height: 14px;
+  border-radius: 3px; background: var(--天); border: 3px solid #fff;
+}
+.头囱 {
+  position: absolute; left: 64px; bottom: 48px; width: 16px; height: 20px;
+  border-radius: 5px 5px 2px 2px; background: var(--墨);
+}
+.头轮 {
+  position: absolute; bottom: 6px; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--墨); border: 4px solid #6b7078;
+}
+.头轮1 { left: 20px; }
+.头轮2 { left: 58px; }
+.车厢条 { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+/* 车厢牌：数瓦换个圆角当挂在车厢上的号牌，底下垫一对轮子的意象（下边框粗一点） */
+.数瓦.车厢 {
+  border-radius: 14px; border-bottom: 6px solid #cf9a45; background: #fff3d9;
+}
+
+/* ---------------------------------------------------------------- 数字长龙 */
+
+/* 报数题，格子孩子不点（用嘴或坞上的备选钮答），所以格子小一点没关系 —— 触靶红线
+   落在坞上的备选钮那边，那是共享件管的。 */
+.长龙网 {
+  display: grid; grid-template-columns: repeat(10, 56px); grid-auto-rows: 50px; gap: 8px;
+  background: linear-gradient(#eef7ff, #e3f0ff); padding: 16px; border-radius: 16px;
+}
+.长龙格 {
+  min-width: 0; height: 50px; font-size: 26px; border-radius: 10px;
+}
+.长龙格.锚 { background: var(--柠檬); color: var(--墨); box-shadow: 0 0 0 3px #ffbf3d inset; }
+:root[data-语='en'] .长龙格 { font-size: 22px; }
+
+/* ---------------------------------------------------------------- 摆放（果盘 / 糖葫芦 / 装货 / 出题官共用引擎） */
+
+/* gap 12 不是 16：糖葫芦十颗串（389）+ 汽笛（94）+ 这道缝 + 画框 padding（44）加起来
+   顶着 542 的预算线，16 时超 1px 全靠 flex 静默吸收——留 3px 真余量，别贴线站。 */
+.摆放挂点 { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.摆放区 { display: flex; align-items: flex-end; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.摆放区.开动 { animation: 开动 0.8s ease; }
+@keyframes 开动 { 0% { transform: translateX(0); } 30% { transform: translateX(-6px); } 100% { transform: translateX(30px); opacity: 0.85; } }
+
+/* 容器：空的（可摆）描虚线邀请孩子点，已给的实底 */
+.摆格 { position: relative; min-width: 136px; cursor: default; }
+.摆格.可摆 { cursor: pointer; }
+.摆堆 { display: flex; }
+
+/* 货件：实体图字号盒（素材 256px，缩到这么小仍锐）；CSS 形状同尺寸。
+   原来 30px 在 104~108px 宽的盘/签/车厢里显得很小很孤单（家长反馈：草莓看不清），
+   放大到 44px——大到能看清是草莓还是苹果，又还留得出两三个并排的空间。 */
+.摆件图 { width: 44px; height: 44px; display: block; pointer-events: none; -webkit-user-drag: none; }
+.摆件字 { font-size: 38px; line-height: 44px; text-align: center; }
+.摆件形 { width: 44px; height: 44px; display: block; pointer-events: none; }
+
+/* 山楂：一颗油亮的红果子 */
+.摆件-山楂 { border-radius: 50%; background: radial-gradient(circle at 34% 30%, #ff8a7a 0 12%, #e23b2a 55%, #b02216 100%); box-shadow: inset -2px -3px 4px rgba(0,0,0,0.25); }
+/* 橘子瓣：一弯橙色月牙 */
+.摆件-橘瓣 { background: radial-gradient(circle at 50% 120%, #ffb43d 0 60%, #ef8a1a 100%); border-radius: 50% 50% 50% 50% / 20% 20% 80% 80%; clip-path: ellipse(50% 42% at 50% 60%); }
+/* 蘑菇：红伞白点 + 米色柄（装货那一堆用，颜色不承担答案）。尺寸跟着 .摆件形 一起放大过。 */
+.摆件-蘑菇 { position: relative; }
+.摆件-蘑菇::before { content: ''; position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 44px; height: 26px; border-radius: 22px 22px 8px 8px; background: radial-gradient(circle at 30% 30%, #ff8a6b, #d0402a); }
+.摆件-蘑菇::after { content: ''; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 20px; height: 20px; border-radius: 0 0 7px 7px; background: #f4e6c8; }
+
+/* 横排（果盘）：盘子 = 一枚浅浅的瓷碟，货在碟上簇拥。
+   盘子这枚 ::after 是**定位元素**，会盖在常规流里的货堆上头——原来盘子把最底下一排
+   草莓遮掉了半截（家长反馈的「草莓被挡」就是这个）。所以给货堆 position+z-index 抬到
+   盘子上面：货落在碟里，不再被碟沿吞掉。 */
+.摆布-横 .摆格 { padding-bottom: 12px; }
+.摆布-横 .摆格::after {
+  content: ''; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+  width: 138px; height: 34px; border-radius: 50%; z-index: 0;
+  background: radial-gradient(ellipse 62% 74% at 50% 34%, #ffffff 0 38%, #eef3f6 62%, #d2dce2 100%);
+  box-shadow:
+    inset 0 3px 4px rgba(255, 255, 255, 0.9),
+    inset 0 -5px 7px rgba(120, 140, 155, 0.38),
+    0 7px 13px rgba(58, 63, 70, 0.22);
+}
+.摆布-横 .摆堆 { position: relative; z-index: 1; flex-wrap: wrap; justify-content: center; align-content: flex-end; gap: 2px; width: 136px; min-height: 50px; }
+.摆布-横 .摆格.可摆::after { outline: 4px dashed rgba(63,159,214,0.7); outline-offset: 3px; }
+
+/* 竖串（糖葫芦）：一根竹签，山楂/橘瓣从下往上串 */
+.摆布-竖 .摆格 { width: 100px; min-height: 360px; display: flex; justify-content: center; align-items: flex-end; }
+.摆布-竖 .摆格::before {
+  content: ''; position: absolute; left: 50%; top: 10px; bottom: 0; width: 5px;
+  transform: translateX(-50%); background: #b98a5c; border-radius: 3px;
+}
+.摆布-竖 .摆堆 { position: relative; flex-direction: column-reverse; align-items: center; gap: 1px; min-height: 340px; justify-content: flex-end; }
+/* 竖串是全讲最占高度的布局（文件头那笔账：基准高 760 正是被它顶出来的，几乎没有
+   余量），所以这里只敢比原来的 30px 略放大到 38px——横排/塔排有富余，能放到 44px，
+   这一处不能照抄，抄了会把汽笛钮顶出舞台底部。 */
+.摆布-竖 .摆件形 { width: 38px; height: 38px; }
+.摆布-竖 .摆格.可摆 { outline: 4px dashed rgba(63,159,214,0.6); outline-offset: 4px; border-radius: 16px; }
+
+/* 塔（装货）：一节车厢，货往上码成塔 */
+.摆布-塔 .摆格 { width: 120px; min-height: 300px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 34px; }
+.摆布-塔 .摆格::after {
+  content: ''; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+  width: 116px; height: 30px; border-radius: 8px; background: #6c8ebf; box-shadow: var(--软影);
+}
+.摆布-塔 .摆堆 { flex-direction: column-reverse; align-items: center; gap: 1px; }
+.摆布-塔 .摆格.可摆 { outline: 4px dashed rgba(63,159,214,0.6); outline-offset: 4px; border-radius: 12px; }
+
+/* ---------------------------------------------------------------- 花圃 */
+
+.花坛排 { display: flex; align-items: flex-end; justify-content: center; gap: 12px; flex-wrap: wrap; }
+/* 花从 26px 放大到 34px（同「实体图太小」那轮反馈，评审补抓的漏网）：床加宽到 120，
+   内宽 108 刚好还排得下三朵一行（3×34+2 缝 = 104），构图不变只是花大了。
+   行宽：7 床 ×120 + 6 缝 ×12 = 912 < 画框内宽 1076 ✓ */
+.花坛 {
+  width: 120px; min-height: 150px; border-radius: 12px 12px 8px 8px;
+  background: linear-gradient(#c79a6a, #a9764a); padding: 8px 6px 6px; text-align: center;
+  display: flex; flex-direction: column; justify-content: flex-end; gap: 6px;
+}
+.花坛.空坛 { background: repeating-linear-gradient(45deg, #d8c3a4, #d8c3a4 8px, #e6d6ba 8px, #e6d6ba 16px); outline: 4px dashed rgba(63,159,214,0.7); }
+.花组 { display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-end; gap: 1px; min-height: 96px; }
+.花图 { width: 34px; height: 34px; display: block; pointer-events: none; -webkit-user-drag: none; }
+.花坛数 { font-size: 26px; font-weight: 800; color: var(--纸); }
+.花坛数.填好 { color: var(--柠檬); animation: 星星弹 0.4s ease; }
+
+/* ---------------------------------------------------------------- 山洞 */
+
+.山洞排 {
+  display: flex; align-items: flex-end; justify-content: center; gap: 10px; flex-wrap: wrap;
+  background: radial-gradient(ellipse 120% 90% at 50% 8%, #6f6a62, #4c473f);
+  box-shadow: inset 0 10px 26px rgba(0, 0, 0, 0.35);
+  padding: 22px 18px; border-radius: 26px 26px 16px 16px;
+}
+.萝卜撮 {
+  display: flex; flex-direction: column-reverse; align-items: center; gap: 0;
+  min-width: 66px; min-height: 150px; justify-content: flex-end; border-radius: 12px; padding: 5px;
+}
+/* 橙/紫两色的底衬要足够分明——两个空撮一前一后排在末尾，孩子得一眼看出哪撮该补橙、
+   哪撮该补紫（否则「答案对不对」看着就犯嘀咕）。所以底色比原来更实一点。
+   （类名 蓝 沿用 数据.js 的台账线名——书上叫蓝线，画的是紫茄子；线名只在代码里，不上口。） */
+.萝卜撮.橙 { background: rgba(255, 168, 66, 0.24); }
+.萝卜撮.蓝 { background: rgba(126, 108, 214, 0.28); }
+.萝卜撮.空撮 { outline: 3px dashed rgba(255, 255, 255, 0.8); min-height: 150px; }
+.萝卜撮.当格 { outline: 4px solid var(--柠檬); }
+/* 萝卜/茄子 38 → 54px（38 还是被反馈太小）。最高一撮 5 根 ×54 = 270 + 撮 padding 10
+   + 排上下 padding 44 ≈ 324，仍在 542 的画框预算内；行宽 9 撮 ×66 + 8 缝 ×10 = 674 < 1076。 */
+.萝卜图 { width: 54px; height: 54px; display: block; pointer-events: none; -webkit-user-drag: none; }
+
+/* ---------------------------------------------------------------- 蘑菇 */
+
+.草地 {
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px;
+  min-height: 170px; max-width: 900px;
+  background: linear-gradient(#bfe6a8, #a3d98c); border-radius: 16px; padding: 16px;
+}
+/* 蘑菇 96 舞台px：邻居是另一个答案（点错就摘错），所以真放大到 ≥94（账在文件头）。
+   伞盖是贴纸图（黄/蓝两张，颜色仍是第二条线索），数字盖一枚白底圆牌在伞盖正中央——
+   平涂色块上一枚白牌，比把深字直接压在色块上更认得清。 */
+.蘑菇 { position: relative; width: 96px; height: 96px; cursor: pointer; transition: transform 0.15s ease; }
+@media (hover: hover) { .蘑菇:hover { transform: scale(1.06); } }
+.菇图 { width: 96px; height: 96px; display: block; pointer-events: none; -webkit-user-drag: none; }
+/* 数字白牌：草地大蘑菇和篮里小蘑菇是同一枚牌子，只差尺寸——形状只写这一份。 */
+.菇号 {
+  position: absolute; left: 50%; transform: translate(-50%, -50%); z-index: 2;
+  display: grid; place-items: center; border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92); font-weight: 800; color: var(--墨);
+}
+.蘑菇 .菇号 {
+  top: 33%; min-width: 34px; height: 34px; padding: 0 7px;
+  font-size: 24px; box-shadow: 0 2px 5px rgba(58, 63, 70, 0.28);
+}
+.蘑菇.摘走 { visibility: hidden; }
+.蘑菇.摇 { animation: 摇一摇 0.4s ease; }
+@keyframes 摇一摇 { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+
+/* 篮子：宽扁编织托篮的贴纸图（只取前沿那一圈，去了提手和后沿，抠得干净），铺在篮框
+   底层；已摘的小蘑菇排成一行卧在篮口绳箍上。篮框按素材宽高比 680:285 定尺寸（440×184），
+   篮 用绝对定位坐到绳箍那一带（top 26%：蘑菇一半探出篮口、一半掖在绳箍里）。 */
+.蘑菇篮框 { position: relative; width: 440px; height: 184px; margin-top: 6px; }
+.篮图 { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; -webkit-user-drag: none; }
+.蘑菇篮 {
+  position: absolute; left: 50%; top: 26%; transform: translate(-50%, -50%); z-index: 1;
+  display: flex; justify-content: center; align-items: center; gap: 6px; max-width: 370px;
+}
+.篮粒 { position: relative; width: 46px; height: 46px; flex: none; }
+.粒图 { width: 46px; height: 46px; display: block; pointer-events: none; -webkit-user-drag: none; }
+.篮粒 .菇号 {
+  top: 32%; min-width: 18px; height: 18px; padding: 0 4px;
+  font-size: 13px; box-shadow: 0 1px 3px rgba(58, 63, 70, 0.28);
+}
+
+/* ---------------------------------------------------------------- 小小出题官 */
+
+.出题挂 { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+/* 盖住的那一节：斜纹底 + 红问号，一眼看得出「这里被盖住了」 */
+.数瓦.盖住 {
+  color: var(--车红);
+  background: repeating-linear-gradient(45deg, #efe7d4, #efe7d4 8px, #f7f1e4 8px, #f7f1e4 16px);
+}
+.数瓦.可盖 { cursor: pointer; }
+@media (hover: hover) { .数瓦.可盖:hover { outline: 4px solid var(--湖); } }
+.裁判章 { display: flex; gap: 40px; }
+/* 大裁判图章：孩子点对错。94 舞台px 真达标（邻居是另一个答案）。 */
+.裁判钮 {
+  width: 120px; height: 120px; border: none; border-radius: 24px; cursor: pointer;
+  font-size: 60px; background: var(--纸); box-shadow: var(--软影); transition: transform 0.15s ease;
+}
+.裁判钮:disabled { opacity: 0.4; }
+@media (hover: hover) { .裁判钮:not(:disabled):hover { transform: scale(1.08); } }
+.裁判钮.已盖章 { animation: 盖章 0.5s ease; outline: 6px solid var(--柠檬); }
+@keyframes 盖章 { 0% { transform: scale(1.8) rotate(-12deg); opacity: 0.2; } 60% { transform: scale(0.9) rotate(4deg); } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+
+/* ---------------------------------------------------------------- 找错车厢 */
+
+.找错列 { max-width: 100%; }
+/* 找错的量题塔最高到 15 颗（钻石列 2 3 5 8 15）：跟着通用件涨到 44px 的话一根塔
+   674px，把 542 的画框预算爆掉 200 多（评审抓的回归——上一轮的真机核对只量了糖葫芦）。
+   这一站比的是「哪节不对」，不用数得一颗颗清楚，回到按 15 颗顶格算出来的 30px：
+   15×30 + 14 缝 + 34 格底 + 44 框边 = 542，恰好贴住预算线。 */
+.找错列 .摆件图, .找错列 .摆件形 { width: 30px; height: 30px; }
+.可点厢 { cursor: pointer; transition: transform 0.15s ease; }
+@media (hover: hover) { .可点厢:hover { transform: translateY(-4px); } }
+.摇一摇 { animation: 摇一摇 0.45s ease; }
+/* 三错演示：错车厢自己跳出来认错 */
+.可点厢.跳出 { animation: 跳出 0.65s ease; }
+@keyframes 跳出 { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-26px) rotate(-3deg); } 70% { transform: translateY(0); } 85% { transform: translateY(-10px); } }
+/* 数字瓦片当**孩子的点选答案**用时（找错的数字车厢、出题官的可盖节），邻居是另一个
+   答案 → 不补热区、真放大到 96 舞台px（文件头那笔账：94 才够 44pt，96 留一点余量）。
+   报数站的数瓦不受此限 —— 那些孩子不点，答案落在坞上的备选钮（共享件管它的下限）。 */
+.数瓦.可点厢, .数瓦.可盖 { min-width: 96px; height: 96px; }
+
+/* ---------------------------------------------------------------- Boss */
+
+.Boss题条 { min-height: 100px; }

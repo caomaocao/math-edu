@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>第5讲 一多对应 · 家长伴读页</title>
+    <style>
+      /* 家长伴读页 —— 给识字的大人看的普通网页：正常字号、可长滚动、可打印。
+         不受儿童 UI 铁律约束，也不引任何脚本、不装转屏拦罩（竖横屏都可读）。
+         答案是人工誊写的：改题面（站点表.js 的台账）要记得回来改这里。 */
+      :root {
+        --墨: #33291d; --淡墨: #7a6a54; --纸: #fffdf6; --底: #efe7d6; --线: #ddd2ba;
+        --篝火: #d4732e; --森林: #4b7d43; --帐篷: #c1913f; --高亮: #fff1d6;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: var(--底); color: var(--墨);
+        font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+        font-size: 16px; line-height: 1.75; -webkit-text-size-adjust: 100%;
+      }
+      .纸张 {
+        max-width: 940px; margin: 0 auto; padding: 40px 48px 96px;
+        background: var(--纸); min-height: 100vh; min-height: 100dvh;
+        box-shadow: 0 0 40px rgba(51, 41, 29, 0.10);
+      }
+      .页头 { border-bottom: 3px solid var(--墨); padding-bottom: 20px; margin-bottom: 8px; }
+      .页头 .眉 { font-size: 14px; color: var(--淡墨); letter-spacing: 0.14em; }
+      .页头 h1 { font-size: 30px; margin: 6px 0 10px; line-height: 1.3; }
+      .页头 .摘 { color: var(--淡墨); font-size: 15px; margin: 0; }
+      .书页 {
+        display: inline-block; margin-top: 14px; padding: 4px 12px;
+        border: 1px solid var(--线); border-radius: 4px; font-size: 14px; color: var(--淡墨); background: #fff;
+      }
+      .提醒条 {
+        margin: 22px 0 10px; padding: 14px 18px; background: var(--高亮);
+        border-left: 4px solid var(--帐篷); font-size: 14.5px; border-radius: 0 6px 6px 0;
+      }
+      .提醒条 b { color: #8a5a10; }
+      nav.目录 {
+        margin: 26px 0 34px; padding: 18px 22px; background: #f7f1e4;
+        border: 1px solid var(--线); border-radius: 8px; font-size: 14.5px;
+      }
+      nav.目录 h2 { font-size: 14px; margin: 0 0 10px; letter-spacing: 0.1em; color: var(--淡墨); }
+      nav.目录 ol { margin: 0; padding-left: 20px; }
+      nav.目录 li { margin: 3px 0; }
+      nav.目录 a { color: var(--篝火); text-decoration: none; }
+      @media (hover: hover) { nav.目录 a:hover { text-decoration: underline; } }
+      nav.目录 .细 { color: var(--淡墨); font-size: 13.5px; }
+      section.大段 { margin-top: 52px; }
+      section.大段 > h2 { font-size: 23px; margin: 0 0 6px; padding-bottom: 8px; border-bottom: 2px solid var(--墨); }
+      section.大段 > .段引 { color: var(--淡墨); font-size: 14.5px; margin: 0 0 22px; }
+      h3 { font-size: 18.5px; margin: 34px 0 8px; }
+      h3 .序 { display: inline-block; min-width: 26px; margin-right: 8px; color: var(--篝火); font-variant-numeric: tabular-nums; }
+      p { margin: 8px 0; }
+      .阶梯 { margin: 24px 0 8px; }
+      .阶 { border-left: 4px solid var(--森林); padding: 2px 0 2px 20px; margin: 0 0 26px; }
+      .阶:nth-child(2) { border-color: #6aa96f; }
+      .阶:nth-child(3) { border-color: var(--帐篷); }
+      .阶:nth-child(4) { border-color: var(--篝火); }
+      .阶 .阶名 { font-size: 17px; font-weight: 700; margin: 0 0 2px; }
+      .阶 .阶环节 { font-size: 13.5px; color: var(--淡墨); margin: 0 0 8px; }
+      .帮助 {
+        border: 1px solid var(--线); border-radius: 8px; padding: 4px 22px 18px;
+        margin: 0 0 26px; background: #fff; break-inside: avoid;
+      }
+      .帮助 dl { margin: 10px 0 0; }
+      .帮助 dt { font-weight: 700; font-size: 14px; color: var(--森林); margin-top: 12px; letter-spacing: 0.04em; }
+      .帮助 dd { margin: 2px 0 0; }
+      .帮助 ul { margin: 4px 0; padding-left: 22px; }
+      .帮助 li { margin: 3px 0; }
+      .卡点 { color: var(--篝火); }
+      table { width: 100%; border-collapse: collapse; margin: 12px 0 6px; font-size: 14.5px; break-inside: avoid; }
+      caption { text-align: left; font-size: 13.5px; color: var(--淡墨); padding-bottom: 6px; }
+      th, td { border: 1px solid var(--线); padding: 7px 10px; text-align: left; vertical-align: top; }
+      th { background: #f4eede; font-weight: 700; }
+      td.答 { font-weight: 700; color: var(--森林); font-variant-numeric: tabular-nums; }
+      td.格 { font-variant-numeric: tabular-nums; }
+      tbody tr:nth-child(even) td { background: #fbf8f0; }
+      .固定 {
+        display: inline-block; font-size: 12.5px; padding: 1px 8px; border: 1px solid #b9c9a8;
+        border-radius: 10px; color: #4a6b3c; background: #f1f6ec; vertical-align: 2px; margin-left: 8px; font-weight: 400;
+      }
+      .脚注 { margin-top: 60px; padding-top: 18px; border-top: 1px solid var(--线); font-size: 13.5px; color: var(--淡墨); }
+      .回顶 { font-size: 13px; }
+      .回顶 a { color: var(--淡墨); text-decoration: none; }
+      @media (max-width: 640px) {
+        .纸张 { padding: 24px 16px 72px; box-shadow: none; }
+        .页头 h1 { font-size: 25px; }
+        .提醒条 { padding: 12px 14px; }
+        nav.目录 { padding: 14px 16px; }
+        nav.目录 li { margin: 8px 0; }
+        nav.目录 a { display: inline-block; padding: 6px 0; }
+        .回顶 a { display: inline-block; padding: 8px 0; }
+        section.大段 { margin-top: 38px; }
+        .阶 { padding-left: 14px; }
+        .帮助 { padding: 4px 14px 14px; }
+        .帮助 ul, .帮助 ol { padding-left: 18px; }
+        table th[style] { width: auto !important; }
+        table { font-size: 14px; }
+        th, td { padding: 6px 8px; }
+        caption { font-size: 13px; }
+      }
+      @media print {
+        body { background: #fff; font-size: 11.5pt; line-height: 1.55; }
+        .纸张 { max-width: none; margin: 0; padding: 0; box-shadow: none; min-height: 0; }
+        nav.目录, .回顶 { display: none; }
+        .提醒条 { background: #fff; border-left: 3px solid #000; }
+        .帮助 { border: 1px solid #999; background: #fff; }
+        .帮助 dt { color: #000; text-decoration: underline; }
+        .卡点 { color: #000; font-weight: 700; }
+        td.答 { color: #000; }
+        th { background: #eee !important; }
+        tbody tr:nth-child(even) td { background: #fff; }
+        h3 .序 { color: #000; }
+        .阶 { border-left: 3px solid #000; }
+        .固定 { border-color: #666; background: #fff; color: #000; }
+        section.大段 { break-before: page; }
+        section.大段:first-of-type { break-before: auto; }
+        h3 { break-after: avoid; }
+        a { color: #000; text-decoration: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="纸张" id="顶">
+      <header class="页头">
+        <div class="眉">大班数学 · 家长伴读页</div>
+        <h1>第5讲 一多对应（森林营地野餐会）</h1>
+        <p class="摘">
+          十一个营地站点的教学大纲、操作帮助与全部答案。给陪玩的大人看，孩子看不懂也不必看。
+        </p>
+        <div class="书页">对应书页：第 50–60 页</div>
+      </header>
+
+      <div class="提醒条">
+        <b>先说清楚一件事：</b>这一页写的全部是<b>网页活动</b>的玩法和答案，不是书上练习册的答案。
+        网页把书里的对应关系重新编排成一片森林营地——题面数值忠实照搬书页，但把书上原本的卡通角色
+        换成了体色分明的四只小动物（青蛙、瓢虫、小鸟、小熊），另加了「篝火晚会」这个自创的收官关。
+        请不要拿这一页去对照书上的贴纸和连线，编排不一样，也不需要对得上。
+      </div>
+
+      <nav class="目录">
+        <h2>这一页有什么</h2>
+        <ol>
+          <li><a href="#大纲">教学大纲</a><span class="细">　一一对应 → 一多对应 → 平均分 → 几个几与换位思考，四件事的能力点</span></li>
+          <li><a href="#帮助">各站帮助</a><span class="细">　怎么操作、是配对还是动手摆还是开口报、答错了怎么办</span></li>
+          <li><a href="#答案">各站答案</a><span class="细">　每道题的核准数值与答案，与站里的台账逐题一致</span></li>
+        </ol>
+      </nav>
+
+      <!-- ================================================================ 一、教学大纲 -->
+      <section class="大段" id="大纲">
+        <h2>一、教学大纲</h2>
+        <p class="段引">
+          这一讲讲的是<b>「对应关系」</b>：谁和谁配、一个配几个、好多个又能分给几个。
+          书里其实就是四件事，由易到难。十一个营地站点在地图上不锁顺序，
+          但推荐次序就是下面这四类。孩子卡在哪一类，回那几站多玩两遍最有用。
+        </p>
+
+        <div class="阶梯">
+          <div class="阶">
+            <p class="阶名">第一件　一一对应：一个配一个，不多不少</p>
+            <p class="阶环节">站点：帐篷站（住帐篷 / 挑雨伞两轮）</p>
+            <p>
+              最基础的一类：四只小动物、四顶帐篷，<b>一只配一顶</b>，颜色对上才算配好。
+              「一一对应」是数数的地基——数得准，靠的就是「点一个、数一个」不重不漏。
+              这一站用<b>颜色</b>当配对的线索（青蛙住绿帐篷、瓢虫住红帐篷……），
+              判断很直观，先让孩子把「配对」这件事玩顺。
+            </p>
+            <p><b>能力点：</b>建立「一个对一个」的对应意识；按一个属性（颜色）把两组东西两两配起来。</p>
+          </div>
+
+          <div class="阶">
+            <p class="阶名">第二件　一多对应：一个配好几个</p>
+            <p class="阶环节">站点：熊猫竹林（1∶2）· 兔子草地（1∶2）· 喂食站（狗 1∶1、企鹅 1∶2）· 腿腿站（腿数）</p>
+            <p>
+              一只熊猫吃 2 根竹子，3 只熊猫要几根？一只兔子 2 只耳朵，10 只兔子几只耳朵？
+              这是<b>「一个对应好几个」</b>——也就是几个几相加，是乘法最早的样子。
+              让孩子发现<b>「每一份都一样多」</b>，然后一份一份加起来，比死记结果重要得多。
+            </p>
+            <p><b>能力点：</b>看出「一对多」的固定倍数；用「一份一份数上去」（2、4、6…）求总数。</p>
+          </div>
+
+          <div class="阶">
+            <p class="阶名">第三件　平均分：好多个，分给几个（反过来的一多对应）</p>
+            <p class="阶环节">站点：分饭站 · 蛋糕派对 · 松果虫虫站（含反向的「几根配一只」）</p>
+            <p>
+              8 碗饭，每人吃 2 碗，能分给几个人？这是<b>把一多对应倒过来</b>：
+              知道总数、知道每份多少，求能分成几份。网页的做法是<b>「一份一份发出去，发到锅空再数几个人」</b>——
+              把抽象的除法变成看得见的动作。总数不变时，<b>每份越多、分到的人越少</b>，
+              是这一类要让孩子体会到的关键。
+            </p>
+            <p><b>能力点：</b>理解「总数 ÷ 每份 = 份数」的动作含义；发现每份与份数此消彼长。</p>
+          </div>
+
+          <div class="阶">
+            <p class="阶名">第四件　几个几 + 换位思考：横着数、竖着数都一样多</p>
+            <p class="阶环节">站点：果盘数数（横数 / 竖数）· 熊猫竹林 / 兔子草地答对后的换位演示</p>
+            <p>
+              同一盘水果，<b>横着数是「3 个 6」，竖着数是「6 个 3」，总数一样</b>。
+              这就是「换位思考」：3+3 也是 6，2+2+2 也是 3+3。它让孩子明白
+              <b>数的次序、分组的方式变了，总数不会变</b>。这是本讲最漂亮的一层，
+              五岁能看出来非常了不起，看不出来也完全正常，多演几遍自然就有感觉。
+            </p>
+            <p><b>能力点：</b>同一堆东西能有两种数法；相加的次序 / 分组不影响总数（加法交换律的雏形）。</p>
+          </div>
+        </div>
+
+        <h3>陪玩时可以留意的三件事（在家怎么接着聊）</h3>
+        <ul>
+          <li>
+            <b>「换位思考」用真碗真饭接着聊。</b>孩子在熊猫竹林 / 兔子草地答对后，网站会演一遍第二种数法：
+            左手一排、右手一排，说破「3+3 也是 6」。饭桌上最好复现：拿<b>两个真碗，各放 3 颗饭团 / 豆子</b>，
+            先一碗一碗数（3、6），再问「左手抓一把、右手抓一把，是不是也是 6？」
+            让孩子亲眼看到 <b>3+3、2+2+2、6 个 1</b> 摆出来一样多——总数不因怎么分组而改变。
+          </li>
+          <li>
+            <b>「平均分」用真碗真饭复现最直观。</b>网站是「发到锅空再数几个人」。在家：盛出<b>8 小碗真饭</b>，
+            跟孩子约定「每人吃 2 碗」，一碗一碗发给排队的娃娃 / 家人，发到锅空，数数发给了几个人（4 个）。
+            再把规则改成「每人 4 碗」，同样 8 碗就只够 2 个人——<b>总数没变，每份越多、分到的人越少</b>。
+            蛋糕派对（20 块每人 4 块 → 5 人）是同一件事的放大版。
+          </li>
+          <li>
+            <b>报数说「六」和说「6」都算对</b>，说英文 six 也算对（英文模式下）。
+            如果嗓子哑了或麦克风不灵，麦克风旁边会亮出几个<b>大数字按钮</b>，点着一样能玩。
+            星星只记「完成」不记「全对」——三次答错后网页会直接演示答案并照样过关给星星。
+            这一讲的目标是让孩子敢想敢试，不是考试。
+          </li>
+        </ul>
+      </section>
+
+      <!-- ================================================================ 二、各站帮助 -->
+      <section class="大段" id="帮助">
+        <h2>二、各站帮助</h2>
+        <p class="段引">
+          十一个站点在营地地图上按小径排列。先看下面这段所有站点通用的部分。
+        </p>
+
+        <div class="帮助">
+          <h3>通用：三种玩法、三次机会、进度</h3>
+          <dl>
+            <dt>三种玩法，看题型自动切换</dt>
+            <dd>
+              <b>配对</b>（帐篷站）——<b>点谁再点哪儿</b>：先点一只小动物（它会发光），再点一顶帐篷 / 一把雨伞。
+              颜色对了它就小跑进去安家；不对就探个头摇摇头退回来。<br />
+              <b>动手摆 / 发饭</b>（熊猫竹林、喂食站、松果虫虫站、分饭站、蛋糕派对）——
+              点一下加一个、点掉减一个；摆好点中间的<b>开饭铃 🛎</b> 提交。发饭是「点一个排队的小朋友就发过去几碗」，发到锅空。<br />
+              <b>开口报数</b>（兔子草地、果盘数数、腿腿站，以及摆放 / 发饭之后的「一共几个」）——
+              点屏幕底部的大麦克风说出那个数，说完自己停。嗓子哑了用旁边亮出的数字按钮点也行。
+            </dd>
+            <dt>答错了会怎样（三次机会）</dt>
+            <dd>
+              <b>错 1 次</b>：鼓励再试。<b>错 2 次</b>：给提示（摆放 / 报数题把已经配好的一组一组高亮重数给他听；
+              配对题把该配的颜色挨个念亮）。<b>错 3 次</b>：直接演示正确答案，然后<b>照样过关拿星</b>，绝不卡住。
+            </dd>
+            <dt>声音、麦克风、星星</dt>
+            <dd>
+              题目全由童声念，屏幕上不写句子（孩子不认字）——<b>唯一上屏的字就是数字</b>，因为数字正是要认的。
+              断网时自动换系统朗读声继续讲。做完一站点亮一颗星，集齐<b>十颗</b>（开营站不算星）
+              就在篝火晚会放全章大烟花。地图左下角灰色的 ↺ 是「重来」：<b>点第一下只是问，再点绿 ✔ 才真清</b>。
+            </dd>
+            <dt>星星跟着孩子走（换设备也在）</dt>
+            <dd>
+              星星和小进度存在浏览器本地，关掉电脑第二天再开还在；如果登录了账号，
+              换到另一台设备（比如妈妈的手机）登录后，星星也会跟着同步过去。断网时照玩，只是这一局先攒在本机、联网后再补传。
+            </dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">00</span>开营啦（导读）<span class="固定">无题目</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>纯演示：小伙伴念一句欢迎、一句「这一讲要学什么」。这一站<b>没有星星</b>，也不用点，重复听两三遍没问题，是给整片营地打底的。</dd>
+            <dt>卡住了怎么办</dt><dd>不会卡。听完自动回营地地图。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">01</span>帐篷站<span class="固定">一一对应 · 配对</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>两轮。<b>A 轮住帐篷</b>：四只小动物按体色住进四顶同色帐篷。<b>下雨了（雨声就是转场信号）→ B 轮挑雨伞</b>：同四只挑四把同色雨伞。<b>点一只动物再点一个帐篷 / 雨伞</b>，颜色对了它就跑进去。</dd>
+            <dt>答案</dt><dd class="答">青蛙→绿、瓢虫→红、小鸟→蓝、小熊→棕（帐篷、雨伞两轮同一套配色）</dd>
+            <dt>卡点</dt><dd class="卡点">配对靠的是<b>颜色</b>，跟动物是谁无关。提示时网页会把该配的颜色挨个念亮。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">02</span>熊猫竹林<span class="固定">一多对应 1∶2 · 动手摆 + 报数 + 换位演示</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>3 只熊猫，<b>每只喂 2 根竹子</b>（第一只已经摆好当示范）。给另外两只各摆 2 根，摇开饭铃 → 报数「一共几根竹子」。答对后网页<b>换位演示</b>：左手一排、右手一排，说破「3+3 也是 6」。</dd>
+            <dt>答案</dt><dd class="答">一共 6 根（3 只 × 每只 2 根）；换位：3 + 3 = 6</dd>
+            <dt>在家接着聊</dt><dd>见大纲末尾「用真碗真饭接着聊换位思考」。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">03</span>兔子草地<span class="固定">一多对应 1∶2 · 报数 + 换位演示</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>10 只兔子，<b>每只 2 只耳朵</b>，问一共几只耳朵。<b>开口报数</b>。答对后换位演示 10 + 10。</dd>
+            <dt>答案</dt><dd class="答">一共 20 只耳朵（10 只 × 每只 2 只）；换位：10 + 10 = 20</dd>
+            <dt>卡点</dt><dd class="卡点">数目大了容易乱。提示时网页把兔子一只一只点亮带着数（2、4、6…），带他两个两个往上跳。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">04</span>分饭站<span class="固定">平均分 · 发饭 + 报数</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>两轮，一锅都是 <b>8 碗饭</b>。<b>点一个排队的小朋友就发过去每人份</b>，点已发的收回，<b>发到锅空</b>再报数「分给了几个人」。A 轮每人 2 碗，B 轮每人 4 碗。</dd>
+            <dt>答案</dt><dd class="答">A 轮：每人 2 碗 → 4 个人；B 轮：每人 4 碗 → 2 个人</dd>
+            <dt>在家复现</dt><dd>见大纲末尾「用真碗真饭复现平均分」——同样 8 碗，每人吃得多，分到的人就少。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">05</span>喂食站<span class="固定">1∶1 与 1∶2 · 动手摆 + 报数</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>
+              ⑴ <b>小狗吃骨头 1∶1</b>：2 / 3 / 4 只狗，给每只的食盘摆<b>对应根数</b>的骨头（一只一根）。<br />
+              ⑵ <b>企鹅吃鱼 1∶2</b>：1 只企鹅一次吃 2 条鱼，给 4 只企鹅喂鱼，摆好后报数「一共几条鱼」。
+            </dd>
+            <dt>答案</dt><dd class="答">狗骨头：2 只→2 根、3 只→3 根、4 只→4 根；企鹅鱼：4 只 × 2 条 = 8 条</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">06</span>松果虫虫站<span class="固定">一多与多对一混练 · 动手摆</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>
+              三道小题，正着摆和反着摆都练到。⑴ <b>松鼠 1∶3 松果</b>：2 / 4 / 6 只松鼠各摆 6 / 12 / 18 颗。
+              ⑵ <b>反向：4 根骨头配 1 只狗</b>，4 / 8 / 12 根摆 1 / 2 / 3 只狗。
+              ⑶ <b>3 条毛毛虫配 1 只鸡</b>，6 / 9 / 12 条摆 2 / 3 / 4 只鸡。（毛毛虫是书上那种绿色肉虫）
+            </dd>
+            <dt>答案</dt><dd class="答">松果：6 / 12 / 18；骨头分狗：1 / 2 / 3 只；毛毛虫分鸡：2 / 3 / 4 只</dd>
+            <dt>卡点</dt><dd class="卡点">反向题（几根配一只）容易和正向搞混。带他先问「几个算一份」，再看「够分几份」。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">07</span>果盘数数<span class="固定">几个几 · 横数 / 竖数 · 报数</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>三盘递进：苹果 2×3（网页先演一遍横着数）→ 橘子 2×4 → 樱桃 3×6。每个方向<b>拆两问</b>：「一排（一列）有几个？」→ 报数；「有几排（几列）？」→ 报数。答对后逐排 / 逐列高亮，网页说破「横着数，是 3 个 6！」（这句只由网页说，孩子嘴里只有单个数字）。</dd>
+            <dt>答案</dt><dd class="答">见下方答案区（横竖两种数法总数相等）</dd>
+            <dt>卡点</dt><dd class="卡点">这一站的重点不是算得快，是让孩子发现<b>横着数、竖着数一样多</b>。果盘只看不点，不用怕点错。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">08</span>腿腿站<span class="固定">一多对应（腿数）· 报数</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>两题。<b>小鸡 2 条腿</b>，5 只小鸡几条腿？<b>小猪 4 条腿</b>，4 只小猪几条腿？<b>开口报数</b>。</dd>
+            <dt>答案</dt><dd class="答">小鸡：5 × 2 = 10 条；小猪：4 × 4 = 16 条</dd>
+            <dt>卡点</dt><dd class="卡点">提示时网页把动物一只一只点亮、翻出累计腿数（2、4、6… / 4、8、12…），带他一份一份加。</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">09</span>蛋糕派对<span class="固定">平均分 · 发饭 + 报数</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd><b>20 块蛋糕</b>，每人吃 4 块，<b>发到盘空</b>再报数「分给了几个小朋友」。玩法同分饭站，数目更大。</dd>
+            <dt>答案</dt><dd class="答">20 ÷ 每人 4 块 = 5 个小朋友</dd>
+          </dl>
+        </div>
+
+        <div class="帮助">
+          <h3><span class="序">10</span>篝火晚会（Boss）<span class="固定">五族混合 + 青蛙合唱团彩蛋</span></h3>
+          <dl>
+            <dt>怎么操作</dt><dd>把学过的五种玩法混在一起连闯五题：<b>配对 → 喂食（动手摆）→ 发饭 → 几个几（报数）→ 腿数（报数）</b>。答对一题往前走一步；中途退出再进，闯到第几题还记得。五题全过 → <b>青蛙合唱团彩蛋</b>：先问「1 只青蛙几条腿」（4，报数），10 只一排数出 40，然后网页自己演——十排青蛙铺满屏，一排一声 40、80、120……数到 400 全场烟花。</dd>
+            <dt>要点</dt><dd><b>彩蛋只演不考</b>：数到 40 之后是纯表演，孩子不需要答 400，看热闹就好。这是全章第 10 颗星，通关放全章大烟花和奖杯。</dd>
+            <dt>卡点</dt><dd class="卡点">题型跳来跳去，孩子要先判断「这是哪种玩法」。答不出别急，三次后会演示。答案见下方答案区。</dd>
+          </dl>
+        </div>
+      </section>
+
+      <!-- ================================================================ 三、各站答案 -->
+      <section class="大段" id="答案">
+        <h2>三、各站答案</h2>
+        <p class="段引">每道题的核准数值与答案，数值与站里的台账（<code>站点表.js</code>）逐题一致。</p>
+
+        <table>
+          <caption>配对与一多对应（例题 + 练一练 + 闯关一）</caption>
+          <thead><tr><th style="width:12em">站点</th><th>题面</th><th style="width:11em">答案</th></tr></thead>
+          <tbody>
+            <tr><td>帐篷站（住帐篷 / 挑雨伞）</td><td>四只小动物按体色配同色帐篷 / 雨伞</td><td class="答">青蛙→绿、瓢虫→红、小鸟→蓝、小熊→棕</td></tr>
+            <tr><td>熊猫竹林</td><td class="格">3 只熊猫，每只 2 根竹子 → 一共几根</td><td class="答">6（换位 3+3）</td></tr>
+            <tr><td>兔子草地</td><td class="格">10 只兔子，每只 2 只耳朵 → 一共几只</td><td class="答">20（换位 10+10）</td></tr>
+            <tr><td>喂食站（狗骨头 1∶1）</td><td class="格">2 / 3 / 4 只狗，每只 1 根骨头</td><td class="答">摆 2 / 3 / 4 根</td></tr>
+            <tr><td>喂食站（企鹅鱼 1∶2）</td><td class="格">4 只企鹅，每只 2 条鱼 → 一共几条</td><td class="答">8</td></tr>
+            <tr><td>腿腿站（小鸡）</td><td class="格">5 只小鸡，每只 2 条腿</td><td class="答">10</td></tr>
+            <tr><td>腿腿站（小猪）</td><td class="格">4 只小猪，每只 4 条腿</td><td class="答">16</td></tr>
+          </tbody>
+        </table>
+
+        <table>
+          <caption>平均分（多对一）</caption>
+          <thead><tr><th style="width:12em">站点</th><th>题面</th><th style="width:11em">答案</th></tr></thead>
+          <tbody>
+            <tr><td>分饭站 A 轮</td><td class="格">8 碗饭，每人吃 2 碗 → 分给几人</td><td class="答">4 人</td></tr>
+            <tr><td>分饭站 B 轮</td><td class="格">8 碗饭，每人吃 4 碗 → 分给几人</td><td class="答">2 人</td></tr>
+            <tr><td>松果虫虫站（松鼠松果 1∶3）</td><td class="格">2 / 4 / 6 只松鼠，每只 3 颗</td><td class="答">6 / 12 / 18 颗</td></tr>
+            <tr><td>松果虫虫站（骨头分狗，4 根配 1 只）</td><td class="格">4 / 8 / 12 根骨头</td><td class="答">1 / 2 / 3 只狗</td></tr>
+            <tr><td>松果虫虫站（毛毛虫分鸡，3 条配 1 只）</td><td class="格">6 / 9 / 12 条毛毛虫</td><td class="答">2 / 3 / 4 只鸡</td></tr>
+            <tr><td>蛋糕派对</td><td class="格">20 块蛋糕，每人吃 4 块 → 分给几人</td><td class="答">5 人</td></tr>
+          </tbody>
+        </table>
+
+        <table>
+          <caption>果盘数数（几个几：横着数 / 竖着数，两种数法总数相等）</caption>
+          <thead><tr><th style="width:8em">果盘</th><th>横着数</th><th>竖着数</th><th style="width:5em">总数</th></tr></thead>
+          <tbody>
+            <tr><td>苹果 2 排 × 3</td><td>一排 3 个、共 2 排（2 个 3）</td><td>一列 2 个、共 3 列（3 个 2）</td><td class="答">6</td></tr>
+            <tr><td>橘子 2 排 × 4</td><td>一排 4 个、共 2 排（2 个 4）</td><td>一列 2 个、共 4 列（4 个 2）</td><td class="答">8</td></tr>
+            <tr><td>樱桃 3 排 × 6</td><td>一排 6 个、共 3 排（<b>3 个 6</b>）</td><td>一列 3 个、共 6 列（<b>6 个 3</b>）</td><td class="答">18</td></tr>
+          </tbody>
+        </table>
+
+        <table>
+          <caption>篝火晚会 Boss（五族混合连闯五题，答对往前走一步）</caption>
+          <thead><tr><th style="width:6em">玩法</th><th>题面</th><th style="width:8em">答案</th></tr></thead>
+          <tbody>
+            <tr><td>配对</td><td class="格">青蛙 / 瓢虫 / 小鸟 各配同色帐篷</td><td class="答">绿 / 红 / 蓝</td></tr>
+            <tr><td>喂食（摆）</td><td class="格">3 只企鹅，每只 2 条鱼（第 1 只已示范）</td><td class="答">每只摆 2 条</td></tr>
+            <tr><td>发饭</td><td class="格">6 碗饭，每人 2 碗 → 分给几人</td><td class="答">3 人</td></tr>
+            <tr><td>几个几（报）</td><td class="格">苹果 2 排 × 4，一排有几个</td><td class="答">4</td></tr>
+            <tr><td>腿数（报）</td><td class="格">3 只小猪，每只 4 条腿</td><td class="答">12</td></tr>
+          </tbody>
+        </table>
+
+        <table>
+          <caption>青蛙合唱团彩蛋（只演不考，孩子只需答开头的 4）</caption>
+          <thead><tr><th>环节</th><th style="width:9em">数</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td class="格">1 只青蛙几条腿</td><td class="答">4</td><td>孩子报数（这是彩蛋里唯一要答的）</td></tr>
+            <tr><td class="格">10 只一排，一起数腿</td><td class="答">40</td><td>网页带着数 4、8、12……40</td></tr>
+            <tr><td class="格">十排铺满屏，一排一声</td><td class="答">400</td><td>40、80、120……400，纯表演，不用答</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <p class="脚注">
+        这一页跟着网页的台账走：题目数值（<code>站点表.js</code> 的台账）改了，这里的答案要一起改。
+        <span class="回顶"><a href="#顶">↑ 回到顶部</a></span>
+      </p>
+    </div>
+  </body>
+</html>

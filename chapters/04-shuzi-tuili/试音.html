@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>试音 · 给孩子挑个声音</title>
+    <style>
+      body { font-family: "PingFang SC", sans-serif; max-width: 640px; margin: 40px auto; padding: 0 20px; color: #3a3f46; }
+      h1 { font-size: 22px; }
+      p.说明 { color: #7b8a9c; font-size: 14px; line-height: 1.7; }
+      .音色卡 { display: flex; align-items: center; gap: 12px; background: #f7f9fb; border-radius: 14px; padding: 14px 18px; margin: 12px 0; }
+      .音色名 { flex: 1; min-width: 0; overflow-wrap: break-word; }
+      .音色名 b { font-size: 16px; }
+      .音色名 span { display: block; font-size: 13px; color: #7b8a9c; }
+      button { border: none; border-radius: 10px; padding: 10px 16px; cursor: pointer; font-size: 14px; }
+      .听 { background: #3f9fd6; color: white; }
+      .选 { background: #e8edf2; }
+      .选.当前 { background: #9bd77f; color: white; }
+      /* 16px 是 iOS 的门槛：输入框字号小于 16px，一点进去 Safari 就整页放大。 */
+      input { padding: 10px; border: 1px solid #d7dee6; border-radius: 10px; width: 220px; max-width: 100%; font-size: 16px; }
+      a { color: #3f9fd6; }
+      #状态 { font-size: 13px; color: #7b8a9c; min-height: 20px; }
+
+      @media (max-width: 480px) {
+        .音色卡 { flex-wrap: wrap; }
+        .音色名 { flex: 1 0 100%; }
+        input { width: 100%; }
+        button { flex: 1; min-height: 44px; }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🎚️ 给孩子挑个声音</h1>
+    <p class="说明">
+      点「试听」听一句样音，喜欢就「用这个」。孩子那边立刻换新声音；
+      同一句话每种音色只生成一次，换回来不重复花钱。
+      默认是「龙杰力豆」—— 官方的 5 岁天真男童音色。
+    </p>
+    <div id="音色单"></div>
+    <div class="音色卡">
+      <div class="音色名"><b>自定义音色 ID</b><span>百炼音色列表里的任何 voice 值，比如 longanhuan_v3.6</span></div>
+      <input id="自定义" placeholder="voice id" />
+      <button class="听" onclick="试听(document.getElementById('自定义').value)">试听</button>
+      <button class="选" onclick="选用(document.getElementById('自定义').value)">用这个</button>
+    </div>
+    <p id="状态"></p>
+    <p><a href="./index.html">← 回到数字小火车</a></p>
+
+    <script>
+      const 样音 = '你好呀！我是数字小火车！今天我们一起去找数字里藏着的规律！';
+      const 音色们 = [
+        { id: 'longjielidou_v3.6', 名: '龙杰力豆（默认）', 描述: '5 岁天真男童 · 官方精品儿童音色' },
+        { id: 'longanhuan_v3.6', 名: '龙安欢', 描述: '25 岁开朗大姐姐 · 发音清晰' },
+      ];
+      const 单 = document.getElementById('音色单');
+      const 状态 = document.getElementById('状态');
+      // 全站共用的键（说话.js 是全站唯一的嘴巴，两讲共用一个音色）。
+      const 音色键 = '站点:音色';
+      let 当前 = localStorage.getItem(音色键) || 'longjielidou_v3.6';
+
+      function 画() {
+        单.innerHTML = '';
+        for (const { id, 名, 描述 } of 音色们) {
+          const 卡 = document.createElement('div');
+          卡.className = '音色卡';
+          卡.innerHTML = `
+            <div class="音色名"><b>${名}</b><span>${描述} · ${id}</span></div>
+            <button class="听">试听</button>
+            <button class="选 ${id === 当前 ? '当前' : ''}">${id === 当前 ? '✓ 正在用' : '用这个'}</button>`;
+          卡.querySelector('.听').onclick = () => 试听(id);
+          卡.querySelector('.选').onclick = () => 选用(id);
+          单.appendChild(卡);
+        }
+      }
+
+      let 播着 = null;
+      async function 试听(id) {
+        if (!id) return;
+        状态.textContent = '正在生成…（第一次要等几秒）';
+        try {
+          const 回 = await fetch(`/api/tts?text=${encodeURIComponent(样音)}&voice=${encodeURIComponent(id)}`);
+          if (!回.ok) throw new Error((await 回.json()).error || 回.status);
+          if (播着) 播着.pause();
+          播着 = new Audio(URL.createObjectURL(await 回.blob()));
+          播着.play();
+          状态.textContent = '正在播放 ' + id;
+        } catch (e) {
+          状态.textContent = '生成失败：' + e.message + '（检查 .env 的 key，或音色 ID 是否存在）';
+        }
+      }
+
+      function 选用(id) {
+        if (!id) return;
+        localStorage.setItem(音色键, id);
+        当前 = id;
+        画();
+        状态.textContent = '已切换为 ' + id + '，孩子那边下一句话就是新声音。';
+      }
+
+      画();
+    </script>
+  </body>
+</html>

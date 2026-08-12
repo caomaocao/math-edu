@@ -26,12 +26,11 @@ from PIL import Image
 出尺寸 = 256
 
 
-def 抠一张(源: Path, 目标: Path) -> None:
-    图 = Image.open(源).convert("RGBA")
+def 洪泛白底(图: Image.Image) -> None:
+    """BFS 洪泛（原地改）：从四边所有近白像素灌进来，凡连通的近白都置为透明。
+    主体内部的白被轮廓线拦住，不会误伤（文件头有细账）。裁篮子.py 也用这一份。"""
     宽, 高 = 图.size
     px = 图.load()
-
-    # BFS 洪泛：从四边所有近白像素灌进来，凡连通的近白都判为背景
     背景 = bytearray(宽 * 高)
     队 = deque()
     def 试入(x: int, y: int) -> None:
@@ -52,12 +51,16 @@ def 抠一张(源: Path, 目标: Path) -> None:
         if x < 宽 - 1: 试入(x + 1, y)
         if y > 0: 试入(x, y - 1)
         if y < 高 - 1: 试入(x, y + 1)
-
     for y in range(高):
         行起 = y * 宽
         for x in range(宽):
             if 背景[行起 + x]:
                 px[x, y] = (0, 0, 0, 0)
+
+
+def 抠一张(源: Path, 目标: Path) -> None:
+    图 = Image.open(源).convert("RGBA")
+    洪泛白底(图)
 
     框 = 图.getbbox()
     if 框 is None:
