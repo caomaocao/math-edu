@@ -239,10 +239,12 @@ const 样例 = {
   },
   开车: {
     送客: [双('猫猫家', "kitten's house"), 双('小猫', 'kitten')],
-    // 步们 的方位键恒中文（同藏宝线索），模板按语言念；重念裹的是一句已挑好语言的成品
-    步数提示: [{ 步们: [['北', 2], ['东', 3]] }],
-    重念: [双('往北走2格，就到啦！', 'Go north 2 squares, and you are there!')],
+    // 起步收「方向们」（中文规范名数组，模板按语言念）；到头/提醒方向收方位；提醒方向数收方位+格数
+    起步: [['东', '南']],
     没有路: ['北'],
+    到头: ['东'],
+    提醒方向: ['东'],
+    提醒方向数: ['东', 2],
     到站: [双('游乐园', 'amusement park')],
   },
   拍照: { 对了: [双('红红', 'Red')] },
@@ -299,12 +301,9 @@ test('模板：几句容易写歪的中文，逐字钉住（双语化不许改�
     模.宝藏.线索({ 起: '大石头', 步们: [['西', 2], ['北', 3], ['东', 1]] }),
     '从大石头出发，往西走2格，再往北走3格，再往东走1格，宝藏就埋在那里！挖！',
   );
-  // 开车分段提示：跟藏宝线索同口径，第一段不带「再」，收尾一句「就到啦！」
-  assert.equal(
-    模.开车.步数提示({ 步们: [['北', 2], ['东', 3]] }),
-    '往北走2格，再往东走3格，就到啦！',
-  );
-  assert.equal(模.开车.重念('往东走3格，就到啦！'), '再听一遍：往东走3格，就到啦！');
+  // 开车：起步只报能往哪几个方向起步（选项，不是答案）；escalate 提醒才逐步露方向、露格数
+  assert.equal(模.开车.起步(['东', '南']), '从这儿能往东、往南开。你说往哪走、走几格，我就开！');
+  assert.equal(模.开车.提醒方向数('东', 2), '往东开2格，试试看！');
   assert.equal(模.宝藏.挖到宝('金币'), '哇！挖到金币啦！');
   assert.equal(模.宝藏.挖到宝('钻石'), '哇！挖到大钻石啦！');
   assert.equal(模.宝藏.挖到宝('皇冠'), '哇！挖到国王的皇冠啦！');
@@ -327,12 +326,9 @@ test('模板：几句容易写歪的英文，逐字钉住', () => {
     'Start from the big rock, go west 2 squares, then go north 3 squares, then go east 1 square,'
     + ' and that is where the treasure is buried! Dig!',
   );
-  // 开车分段提示：第一段 Go，后面 then go；一格 square，多格 squares
-  assert.equal(
-    模.开车.步数提示({ 步们: [['北', 2], ['东', 1]] }),
-    'Go north 2 squares, then go east 1 square, and you are there!',
-  );
-  assert.equal(模.开车.重念('Go east 3 squares, and you are there!'), 'Listen again: Go east 3 squares, and you are there!');
+  // 开车：起步列可走方向；提醒方向数 露答案时 一格 square、多格 squares
+  assert.equal(模.开车.起步(['东', '南']), 'From here you can go east, south. Tell me which way and how many squares, and I will drive!');
+  assert.equal(模.开车.提醒方向数('北', 1), 'Try going north 1 square!');
   // 一块桥板是 is，两块以上是 are
   assert.equal(模.Boss.亮桥板(1), '1 plank is lit up! Keep going!');
   assert.equal(模.Boss.亮桥板(3), '3 planks are lit up! Keep going!');

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { 规划路线 } from '../js/路线.js';
+import { 规划路线, 试走 } from '../js/路线.js';
 import { 生成小镇 } from '../js/小镇.js';
 import { 建路网, 开车 } from '/shared/js/路网.js';
 
@@ -106,4 +106,41 @@ test('随机镇：从任一路格重新规划（🔁 / 走岔了重念都从车�
       }
     }
   }
+});
+
+// ── 试走：小朋友报「往{方}走{数}格」，车忠实挪那么多（这一步的格数由孩子定，不由机器报） ──
+
+test('试走：全是路就走满报的格数', () => {
+  const 路格们 = [{ 行: 0, 列: 0 }, { 行: 0, 列: 1 }, { 行: 0, 列: 2 }, { 行: 1, 列: 0 }, { 行: 2, 列: 0 }];
+  const 网 = 建路网(3, 3, 路格们);
+  const r = 试走(网, { 行: 0, 列: 0 }, '东', 2);
+  assert.equal(r.走了, 2);
+  assert.deepEqual(r.终点, { 行: 0, 列: 2 });
+  assert.equal(r.到头, false);
+  assert.equal(r.到站, false);
+});
+
+test('试走：报多了、前面到头就停，走了记实走的格数', () => {
+  const 路格们 = [{ 行: 0, 列: 0 }, { 行: 0, 列: 1 }, { 行: 0, 列: 2 }, { 行: 1, 列: 0 }, { 行: 2, 列: 0 }];
+  const 网 = 建路网(3, 3, 路格们);
+  const r = 试走(网, { 行: 0, 列: 0 }, '东', 5);
+  assert.equal(r.走了, 2);
+  assert.deepEqual(r.终点, { 行: 0, 列: 2 });
+  assert.equal(r.到头, true);
+});
+
+test('试走：头一格就不是路 → 走了 0（前端当「开不过去」）', () => {
+  const 网 = 建路网(3, 3, [{ 行: 0, 列: 0 }, { 行: 0, 列: 1 }]);
+  const r = 试走(网, { 行: 0, 列: 0 }, '北', 2);
+  assert.equal(r.走了, 0);
+  assert.equal(r.到头, true);
+  assert.deepEqual(r.终点, { 行: 0, 列: 0 });
+});
+
+test('试走：正好压上目的地就停，不冲过去', () => {
+  const 网 = 建路网(1, 4, [{ 行: 0, 列: 0 }, { 行: 0, 列: 1 }, { 行: 0, 列: 2 }, { 行: 0, 列: 3 }]);
+  const r = 试走(网, { 行: 0, 列: 0 }, '东', 3, { 行: 0, 列: 1 });
+  assert.equal(r.到站, true);
+  assert.equal(r.走了, 1);
+  assert.deepEqual(r.终点, { 行: 0, 列: 1 });
 });

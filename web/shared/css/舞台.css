@@ -65,3 +65,20 @@ body {
   -webkit-user-drag: none;
   user-select: none;
 }
+
+/*
+  地图氛围层（票 12）：把同一张地图全景也铺到整页当底 —— 舞台内是清晰主图，这层是它虚化
+  压暗的延伸。缩放剩下的那圈补边（letterbox）本来露的是 body 的纯色渐变，用户在 16″ 屏上
+  一眼看出「图没铺满页面」；铺上这层，整页被同一片景填满、接缝不穿帮。
+  只有 /shared/js/布景图.js 的 铺地图底() 挂了 有地图氛围 类才生效；缺图不挂类，body 保留
+  讲内 CSS 兜底渐变。inset 往外扩一圈：blur 会把边缘吃虚，扩出去免得露白。z-index:-1 落在
+  舞台和一切内容之下、body 自身渐变之上。这一层在舞台之外，不受「舞台里不许用视口单位」管。
+*/
+body.有地图氛围::before {
+  content: '';
+  position: fixed;
+  inset: -6%;
+  z-index: -1;
+  background: var(--地图氛围) center / cover no-repeat;
+  filter: blur(14px) brightness(0.82) saturate(1.06);
+}

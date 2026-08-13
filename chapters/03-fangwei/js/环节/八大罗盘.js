@@ -9,12 +9,13 @@ import { 判对, 热词 } from '/shared/js/判对.js';
 import { 音效 } from '/shared/js/音效.js';
 import { 生活对地图, 角度, 八方位 } from '/shared/js/罗盘.js';
 import { 元, 洗牌, 做进度点, 歇 } from '/shared/js/搭台.js';
+import { 画实体SVG } from '/shared/js/实体图.js';
 import { 台词, 模板 } from '../台词表.js';
 import { 牌字 } from '../方位词.js';
 
-// 一个实体都没有：八个方向箭头是 UI 图形，不在实体图体系内。
-// 显式导出空数组，好跟「忘了写」区分开——见 test/实体图覆盖.test.js。
-export const 实体们 = [];
+// 屏幕上只有一个实体：罗盘盘面（那张空盘子贴纸，指针另画在上层）。八个方向箭头是 UI 图形，
+// 不在实体图体系内，所以只列盘面这一个——见 test/实体图覆盖.test.js。
+export const 实体们 = ['罗盘盘面'];
 
 const 话 = 台词.八大罗盘;
 const 模 = 模板.八大罗盘;
@@ -27,21 +28,9 @@ export function 创建(面板, 工具) {
     <div class="舞台布">
       <div class="大画框">
         <div class="罗盘台" id="罗盘台">
-          <svg class="罗盘花" viewBox="-110 -110 220 220">
-            <circle r="104" fill="#fffdf6" stroke="#e8d9b8" stroke-width="6"></circle>
-            <g fill="#f2d9a0">
-              <path d="M0,-92 L14,-14 L-14,-14 Z" transform="rotate(45)"></path>
-              <path d="M0,-92 L14,-14 L-14,-14 Z" transform="rotate(135)"></path>
-              <path d="M0,-92 L14,-14 L-14,-14 Z" transform="rotate(225)"></path>
-              <path d="M0,-92 L14,-14 L-14,-14 Z" transform="rotate(315)"></path>
-            </g>
-            <g fill="#e8b96a">
-              <path d="M0,-100 L15,-15 L-15,-15 Z"></path>
-              <path d="M0,-100 L15,-15 L-15,-15 Z" transform="rotate(90)"></path>
-              <path d="M0,-100 L15,-15 L-15,-15 Z" transform="rotate(180)"></path>
-              <path d="M0,-100 L15,-15 L-15,-15 Z" transform="rotate(270)"></path>
-            </g>
-          </svg>
+          <!-- 盘面走实体图（罗盘盘面贴纸）：下面 JS 把 <image> 塞进这张空 svg。指针是另一层
+               svg（罗盘针），叠在盘面之上转（见后面 .罗盘针 的说明）——盘面在底、针在上不打架。 -->
+          <svg class="罗盘花" viewBox="-110 -110 220 220"></svg>
           <svg id="罗盘针" class="罗盘针" viewBox="-110 -110 220 220">
             <path d="M0,-78 L12,0 L-12,0 Z" fill="#f2604e"></path>
             <path d="M0,78 L12,0 L-12,0 Z" fill="#9fb6c9"></path>
@@ -56,6 +45,10 @@ export function 创建(面板, 工具) {
   const 托盘 = 面板.querySelector('#罗盘托盘');
   const 针 = 面板.querySelector('#罗盘针');
   const 点 = 做进度点(面板.querySelector('#罗盘进度'), 5);
+
+  // 盘面贴纸铺满整张 svg 的 viewBox（-110..110 = 220）；它是 罗盘花 唯一的孩子，
+  // 落在独立的 罗盘针 那层之下，指针照转不误。
+  面板.querySelector('.罗盘花').appendChild(画实体SVG('罗盘盘面', '🧭', { 边: 220, x: -110, y: -110 }));
 
   // 槽是按一个字的大小画的圆圈，斜方位（西南这些）是两个字，原字号塞不下会折行淌出圈外
   // ——打个记号让样式表降字号排成一行。只认「恰好两个汉字」：生活轮的箭头 emoji 和

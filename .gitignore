@@ -14,6 +14,9 @@
 # 按批次一个目录，批次名见 生成实体图.py 的 任务单——除了票子，这底下全是原图。
 /.scratch/entity-art/*
 !/.scratch/entity-art/issues/
+# 素材升级（01 校样门）的图片产物同理：raw/display 几十 MB，随时可 校样.py 重生成；
+# spec、票子、校样.py 脚本仍入库，只挡图片目录。
+/.scratch/素材升级/校样/
 
 # Python
 __pycache__/

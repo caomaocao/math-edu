@@ -7,9 +7,10 @@ import { 说 } from '/shared/js/说话.js';
 import { 画实体 } from '/shared/js/实体图.js';
 import { 台词 } from '../台词表.js';
 
-// 帐篷、篝火是 CSS 画的布景（帐篷×4色的素材归票 03，这儿的开场帐篷不承担教学）；
-// 两棵树走实体图单闸——它们是孩子看得见的布景实体，进 实体们（覆盖测试与预热同一接缝）。
-export const 实体们 = ['大树', '松树'];
+// 帐篷、篝火、两棵树都是孩子看得见的布景实体，走实体图单闸（素材升级10：帐篷/篝火从 CSS 换贴纸）。
+// 开场帐篷复用帐篷站的绿/红帐篷素材（那儿是配对答案维度、已导出并预热），本站不重复登记；
+// 篝火是本站首次上屏的实体（Boss 收官的篝火冲天复用它），由本站导出、进 实体们（覆盖测试与预热同一接缝）。
+export const 实体们 = ['大树', '松树', '篝火'];
 
 const 话 = 台词.开营站;
 
@@ -19,10 +20,7 @@ export function 创建(面板, 工具) {
       <div class="开营台">
         <span class="开营树 树左" id="开营树左"></span>
         <div class="开营帐 帐甲"></div>
-        <div class="篝火堆">
-          <span class="柴 柴左"></span><span class="柴 柴右"></span>
-          <span class="火苗 苗大"></span><span class="火苗 苗左"></span><span class="火苗 苗右"></span>
-        </div>
+        <div class="篝火堆"></div>
         <div class="开营帐 帐乙"></div>
         <span class="开营树 树右" id="开营树右"></span>
         <div class="营地坪"></div>
@@ -31,6 +29,9 @@ export function 创建(面板, 工具) {
 
   面板.querySelector('#开营树左').append(画实体('大树', '🌳', { 尺寸: 116 }));
   面板.querySelector('#开营树右').append(画实体('松树', '🌲', { 尺寸: 108 }));
+  面板.querySelector('.帐甲').append(画实体('绿帐篷', '⛺', { 尺寸: 150 }));
+  面板.querySelector('.帐乙').append(画实体('红帐篷', '⛺', { 尺寸: 150 }));
+  面板.querySelector('.篝火堆').append(画实体('篝火', '🔥', { 尺寸: 140 }));
 
   let 局 = 0;
 

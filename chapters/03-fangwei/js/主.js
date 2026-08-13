@@ -14,6 +14,7 @@ import { 装语言开关 } from '/shared/js/语言开关.js';
 import { 台词, 全部台词 } from './台词表.js';
 import { 环节表, 环节名 } from './环节表.js';
 import { 画实体SVG } from '/shared/js/实体图.js';
+import { 画背景SVG, 铺地图底 } from '/shared/js/布景图.js';
 import { 装后退 } from '/shared/js/后退.js';
 import { 装舞台 } from '/shared/js/舞台.js';
 import { 装转屏拦罩, 转屏台词们 } from '/shared/js/转屏.js';
@@ -164,21 +165,22 @@ function 元素(名, 属性们 = {}, 文字) {
 }
 
 function 画布景() {
-  // 远山
-  图纸.append(
-    元素('path', { d: 'M0,300 Q180,140 380,290 Q520,180 700,280 Q900,120 1200,270 L1200,0 L0,0 Z', fill: '#dff3ff' }),
-    元素('circle', { cx: 1080, cy: 95, r: 55, fill: '#ffd76e' }),
-    元素('ellipse', { cx: 230, cy: 100, rx: 90, ry: 30, fill: '#ffffff', opacity: 0.9 }),
-    元素('ellipse', { cx: 620, cy: 70, rx: 70, ry: 24, fill: '#ffffff', opacity: 0.85 }),
-    元素('ellipse', { cx: 930, cy: 150, rx: 80, ry: 26, fill: '#ffffff', opacity: 0.8 }),
-  );
-  // 终点大山 + 旗
-  图纸.append(
-    元素('path', { d: 'M930,270 L1030,120 L1130,270 Z', fill: '#b9dba8' }),
-    元素('path', { d: 'M1030,120 L1030,80 L1075,95 L1030,110 Z', fill: '#ff7d6e' }),
-    元素('line', { x1: 1030, y1: 80, x2: 1030, y2: 122, stroke: '#8a6d4c', 'stroke-width': 4 }),
-    元素('text', { x: 1015, y: 250, 'font-size': 36 }, '🏁'),
-  );
+  // 地图底：一张全景（远山/天空/太阳/云/草地烘在里头，3.0 绘本上色，素材升级混合做法）。
+  // prepend 到最底层；缺图退回原来手画的远山天空兜底（同 画实体 兜底铁律）。
+  const 背景 = 画背景SVG('第3讲地图', { 宽: 1200, 高: 760 });
+  if (背景) {
+    图纸.prepend(背景);
+    铺地图底('第3讲地图'); // 同图也铺到 body 当氛围层，letterbox 不露纯色渐变（票 12）
+  } else {
+    图纸.append(
+      元素('path', { d: 'M0,300 Q180,140 380,290 Q520,180 700,280 Q900,120 1200,270 L1200,0 L0,0 Z', fill: '#dff3ff' }),
+      元素('circle', { cx: 1080, cy: 95, r: 55, fill: '#ffd76e' }),
+      元素('ellipse', { cx: 230, cy: 100, rx: 90, ry: 30, fill: '#ffffff', opacity: 0.9 }),
+      元素('ellipse', { cx: 620, cy: 70, rx: 70, ry: 24, fill: '#ffffff', opacity: 0.85 }),
+      元素('ellipse', { cx: 930, cy: 150, rx: 80, ry: 26, fill: '#ffffff', opacity: 0.8 }),
+    );
+  }
+  // 终点旗（红旗 + 🏁）票 13 拿掉：用户看过觉得是多余装饰，全景本身已够、终点站节点自识别。
   // 小路
   const 路点 = 站们.map(([x, y], i) => `${i ? 'L' : 'M'}${x},${y}`).join(' ');
   图纸.append(
@@ -186,10 +188,10 @@ function 画布景() {
     元素('path', { d: 路点, fill: 'none', stroke: '#fffdf6', 'stroke-width': 6, 'stroke-dasharray': '2 26', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }),
   );
   // 点缀。跟节点图标一样走实体图——地图是 SVG，用 画实体SVG 那个版本。
-  // 终点那面 🏁 格子旗不在里头：它是「到这儿就通关了」的标记，属 UI 图形。
+  // 小鸟票 13 拿掉（用户嫌多余，跟终点旗一起清）；气球/树/花留着当散点装饰。
   const 点缀们 = [
     [60, 520, '大树', '🌳'], [980, 660, '大树', '🌳'], [1120, 420, '松树', '🌲'],
-    [210, 210, '气球', '🎈'], [660, 150, '小鸟', '🐦'],
+    [210, 210, '气球', '🎈'],
     [420, 560, '小花', '🌼'], [760, 560, '小花', '🌷'],
   ];
   // <text> 的 x/y 是基线左端，<image> 的是左上角：减去半个边长摆回原来那个视觉位置

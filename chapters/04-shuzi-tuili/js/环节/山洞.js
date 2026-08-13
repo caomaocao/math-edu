@@ -33,6 +33,7 @@ export function 创建(面板, 工具) {
     const 本局 = ++局;
     const 还在 = () => 局 === 本局 && 面板.classList.contains('在前');
     排.textContent = '';
+    排.appendChild(画实体('山洞', '🕳️', { 类名: '洞图' })); // 空山洞背景贴纸（藏的萝卜是上面另一层）
     // 交替铺开已给的：橙 蓝 橙 蓝 橙 蓝 橙，再留一撮橙空、一撮蓝空
     const 橙撮们 = [];
     const 蓝撮们 = [];

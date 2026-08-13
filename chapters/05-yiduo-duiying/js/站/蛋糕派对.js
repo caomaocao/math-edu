@@ -7,12 +7,14 @@ import { 说 } from '/shared/js/说话.js';
 import { 音效 } from '/shared/js/音效.js';
 import { 选 } from '/shared/js/语言.js';
 import { 中文数, 英文数 } from '/shared/js/数词.js';
+import { 画实体 } from '/shared/js/实体图.js';
 import { 台词 } from '../台词表.js';
 import { 报一个数 } from '../报数.js';
 import { 站点表 } from '../站点表.js';
 import { 开一锅, 排队几人, 摆发饭台 } from '../发饭.js';
 
-export const 实体们 = ['蛋糕块', '小朋友'];
+// 蛋糕块/小朋友是台上的实体；气球是派对布景，素材升级10 从 CSS 换贴纸（本站首次上屏，由本站导出）。
+export const 实体们 = ['蛋糕块', '小朋友', '气球'];
 
 const 账面 = 站点表.find((条) => 条.号 === '蛋糕派对').台账;
 const 念数 = (n) => 选({ cn: 中文数(n), en: 英文数(n) });
@@ -29,6 +31,8 @@ export function 创建(面板, 工具) {
         <div class="发饭挂点"></div>
       </div>
     </div>`;
+  面板.querySelector('.气球左').append(画实体('气球', '🎈', { 尺寸: 64 }));
+  面板.querySelector('.气球右').append(画实体('气球', '🎈', { 尺寸: 64 }));
   const 挂 = 面板.querySelector('.发饭挂点');
   let 局 = 0;
 

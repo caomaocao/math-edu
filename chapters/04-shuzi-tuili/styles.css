@@ -348,15 +348,8 @@ body {
 .摆件图 { width: 44px; height: 44px; display: block; pointer-events: none; -webkit-user-drag: none; }
 .摆件字 { font-size: 38px; line-height: 44px; text-align: center; }
 .摆件形 { width: 44px; height: 44px; display: block; pointer-events: none; }
-
-/* 山楂：一颗油亮的红果子 */
-.摆件-山楂 { border-radius: 50%; background: radial-gradient(circle at 34% 30%, #ff8a7a 0 12%, #e23b2a 55%, #b02216 100%); box-shadow: inset -2px -3px 4px rgba(0,0,0,0.25); }
-/* 橘子瓣：一弯橙色月牙 */
-.摆件-橘瓣 { background: radial-gradient(circle at 50% 120%, #ffb43d 0 60%, #ef8a1a 100%); border-radius: 50% 50% 50% 50% / 20% 20% 80% 80%; clip-path: ellipse(50% 42% at 50% 60%); }
-/* 蘑菇：红伞白点 + 米色柄（装货那一堆用，颜色不承担答案）。尺寸跟着 .摆件形 一起放大过。 */
-.摆件-蘑菇 { position: relative; }
-.摆件-蘑菇::before { content: ''; position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 44px; height: 26px; border-radius: 22px 22px 8px 8px; background: radial-gradient(circle at 30% 30%, #ff8a6b, #d0402a); }
-.摆件-蘑菇::after { content: ''; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 20px; height: 20px; border-radius: 0 0 7px 7px; background: #f4e6c8; }
+/* 山楂 / 橘瓣（糖葫芦）/ 蘑菇（装货）2026-08 升成写实实体，走 画实体（类名 摆件图）——
+   旧的 .摆件-山楂 / .摆件-橘瓣 / .摆件-蘑菇 CSS 形状随数据从 料→实体 一并退役。 */
 
 /* 横排（果盘）：盘子 = 一枚浅浅的瓷碟，货在碟上簇拥。
    盘子这枚 ::after 是**定位元素**，会盖在常规流里的货堆上头——原来盘子把最底下一排
@@ -384,18 +377,42 @@ body {
 .摆布-竖 .摆堆 { position: relative; flex-direction: column-reverse; align-items: center; gap: 1px; min-height: 340px; justify-content: flex-end; }
 /* 竖串是全讲最占高度的布局（文件头那笔账：基准高 760 正是被它顶出来的，几乎没有
    余量），所以这里只敢比原来的 30px 略放大到 38px——横排/塔排有富余，能放到 44px，
-   这一处不能照抄，抄了会把汽笛钮顶出舞台底部。 */
-.摆布-竖 .摆件形 { width: 38px; height: 38px; }
+   这一处不能照抄，抄了会把汽笛钮顶出舞台底部。（山楂/橘瓣升实体后走 .摆件图，同样收到 38px，
+   否则它们按默认 44px 会把这最紧的竖排顶出底。） */
+.摆布-竖 .摆件形, .摆布-竖 .摆件图 { width: 38px; height: 38px; }
 .摆布-竖 .摆格.可摆 { outline: 4px dashed rgba(63,159,214,0.6); outline-offset: 4px; border-radius: 16px; }
 
-/* 塔（装货）：一节车厢，货往上码成塔 */
-.摆布-塔 .摆格 { width: 120px; min-height: 300px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 34px; }
+/* 塔（装货 / 出题官 / Boss 共用）：一列**小火车车厢**，货往上码进车厢、冒出斗口成塔。
+   早先每节只是一条浮着的蓝扁条（用户桌面反馈「火车太丑」）——现在给足三件套：车厢身（开口
+   货斗）+ 一对车轮 + 脚下贯通的木轨，一排连起来一眼读得出是列在装货的火车。三站同走 塔、
+   视觉一致（都在给车厢装货）。车厢身走 ::after、车轮走 ::before；轨道是 摆放区 的 ::after，
+   压在所有车轮脚下。padding-bottom 44（原 34）给车轮+车身让出高度；顶格 10 颗塔仍在预算内。 */
+.摆放区.摆布-塔 { position: relative; padding-bottom: 6px; }
+.摆放区.摆布-塔::after {   /* 贯通木轨：一排车厢脚下的一条轨，车轮坐在上头 */
+  content: ''; position: absolute; left: 2px; right: 2px; bottom: 7px; height: 7px; z-index: 0;
+  background: linear-gradient(#9a7a52, #6f5638); border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.16);
+}
+.摆布-塔 .摆格 { width: 120px; min-height: 300px; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-bottom: 44px; }
+/* 车厢身：开口货斗，顶沿高光 + 斗内暗影，货码在斗口冒出来 */
 .摆布-塔 .摆格::after {
-  content: ''; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
-  width: 116px; height: 30px; border-radius: 8px; background: #6c8ebf; box-shadow: var(--软影);
+  content: ''; position: absolute; left: 50%; bottom: 15px; transform: translateX(-50%);
+  width: 108px; height: 34px; border-radius: 7px 7px 9px 9px; z-index: 0;
+  background: linear-gradient(#63acdd, #3f86c0); border-bottom: 3px solid #2f6a9c;
+  box-shadow: inset 0 5px 0 rgba(255, 255, 255, 0.24), inset 0 -7px 9px rgba(0, 0, 0, 0.18), 0 4px 8px rgba(58, 63, 70, 0.22);
+}
+/* 一对车轮：两枚圆用两道径向渐变画在一条 ::before 里，压在车厢身下、坐在木轨上 */
+.摆布-塔 .摆格::before {
+  content: ''; position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%);
+  width: 108px; height: 20px; z-index: 1;
+  background:
+    radial-gradient(circle 10px at 24px 10px, #33373d 0 6px, #6b7078 6px 9px, transparent 9px),
+    radial-gradient(circle 10px at 84px 10px, #33373d 0 6px, #6b7078 6px 9px, transparent 9px);
 }
 .摆布-塔 .摆堆 { flex-direction: column-reverse; align-items: center; gap: 1px; }
-.摆布-塔 .摆格.可摆 { outline: 4px dashed rgba(63,159,214,0.6); outline-offset: 4px; border-radius: 12px; }
+/* 空车厢：虚线描在车厢身上邀请孩子点着装货（点区仍是整列高柱，见摆放引擎的删除契约） */
+.摆布-塔 .摆格.可摆 { outline: none; }
+.摆布-塔 .摆格.可摆::after { outline: 3px dashed rgba(63, 159, 214, 0.85); outline-offset: 2px; }
 
 /* ---------------------------------------------------------------- 花圃 */
 
@@ -404,25 +421,32 @@ body {
    内宽 108 刚好还排得下三朵一行（3×34+2 缝 = 104），构图不变只是花大了。
    行宽：7 床 ×120 + 6 缝 ×12 = 912 < 画框内宽 1076 ✓ */
 .花坛 {
+  position: relative; overflow: hidden;
   width: 120px; min-height: 150px; border-radius: 12px 12px 8px 8px;
-  background: linear-gradient(#c79a6a, #a9764a); padding: 8px 6px 6px; text-align: center;
+  padding: 8px 6px 6px; text-align: center;
   display: flex; flex-direction: column; justify-content: flex-end; gap: 6px;
 }
+/* 花坛盒 2026-08 换成贴纸图（空土花坛，栽的花是上层）：图铺满旧盒（cover 填满不留缝、
+   不变形，方图轻裁两侧），花与数字盖在上层。空坛仍留斜纹底 + 虚线框（图透明处透出，读作「等你种」）。 */
+.坛图 { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; pointer-events: none; -webkit-user-drag: none; }
 .花坛.空坛 { background: repeating-linear-gradient(45deg, #d8c3a4, #d8c3a4 8px, #e6d6ba 8px, #e6d6ba 16px); outline: 4px dashed rgba(63,159,214,0.7); }
-.花组 { display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-end; gap: 1px; min-height: 96px; }
+.花组 { position: relative; z-index: 1; display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-end; gap: 1px; min-height: 96px; }
 .花图 { width: 34px; height: 34px; display: block; pointer-events: none; -webkit-user-drag: none; }
-.花坛数 { font-size: 26px; font-weight: 800; color: var(--纸); }
+.花坛数 { position: relative; z-index: 1; font-size: 26px; font-weight: 800; color: var(--纸); }
 .花坛数.填好 { color: var(--柠檬); animation: 星星弹 0.4s ease; }
 
 /* ---------------------------------------------------------------- 山洞 */
 
 .山洞排 {
+  position: relative; overflow: hidden;
   display: flex; align-items: flex-end; justify-content: center; gap: 10px; flex-wrap: wrap;
-  background: radial-gradient(ellipse 120% 90% at 50% 8%, #6f6a62, #4c473f);
-  box-shadow: inset 0 10px 26px rgba(0, 0, 0, 0.35);
   padding: 22px 18px; border-radius: 26px 26px 16px 16px;
 }
+/* 山洞盒 2026-08 换成贴纸图（空山洞，藏的萝卜是上层）：图铺满旧盒（cover，宽盒里方图
+   填满不留缝、不变形），萝卜撮盖在上层。撮各自带橙/紫半透明底，在洞图上仍分得清。 */
+.洞图 { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; pointer-events: none; -webkit-user-drag: none; }
 .萝卜撮 {
+  position: relative; z-index: 1;
   display: flex; flex-direction: column-reverse; align-items: center; gap: 0;
   min-width: 66px; min-height: 150px; justify-content: flex-end; border-radius: 12px; padding: 5px;
 }
@@ -464,20 +488,23 @@ body {
 .蘑菇.摇 { animation: 摇一摇 0.4s ease; }
 @keyframes 摇一摇 { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 
-/* 篮子：宽扁编织托篮的贴纸图（只取前沿那一圈，去了提手和后沿，抠得干净），铺在篮框
-   底层；已摘的小蘑菇排成一行卧在篮口绳箍上。篮框按素材宽高比 680:285 定尺寸（440×184），
-   篮 用绝对定位坐到绳箍那一带（top 26%：蘑菇一半探出篮口、一半掖在绳箍里）。 */
-.蘑菇篮框 { position: relative; width: 440px; height: 184px; margin-top: 6px; }
+/* 篮子：带篮口的敞口编织托篮贴纸图（绳箍篮口 + 内壁 + 前壁，去了提手，见 tools/裁篮子.py），
+   铺在篮框底层；已摘的小蘑菇排成一行**坐进篮口空腔**、伞盖冒出前沿绳箍——一眼读得出
+   「蘑菇在篮子里」。早先只取前壁一薄条（无篮口），蘑菇贴在深壁外面像挂墙上、被篮身遮住
+   （用户桌面反馈「篮子遮挡」），2026-08 改成敞口托篮（裁篮子.py 上切 1185→620）。篮框按
+   素材宽高比 1024:623 定尺寸（430×262），篮 绝对定位坐到篮口空腔（top 47%），一行最多 6 只
+   （篮里初始 4 只，A 轮摘 11、16 再添 2 只 = 6，见 数据.js 蘑菇.A）。 */
+.蘑菇篮框 { position: relative; width: 430px; height: 262px; margin-top: 4px; }
 .篮图 { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; -webkit-user-drag: none; }
 .蘑菇篮 {
-  position: absolute; left: 50%; top: 26%; transform: translate(-50%, -50%); z-index: 1;
-  display: flex; justify-content: center; align-items: center; gap: 6px; max-width: 370px;
+  position: absolute; left: 50%; top: 47%; transform: translate(-50%, -50%); z-index: 1;
+  display: flex; justify-content: center; align-items: center; gap: 5px; max-width: 340px;
 }
-.篮粒 { position: relative; width: 46px; height: 46px; flex: none; }
-.粒图 { width: 46px; height: 46px; display: block; pointer-events: none; -webkit-user-drag: none; }
+.篮粒 { position: relative; width: 50px; height: 50px; flex: none; }
+.粒图 { width: 50px; height: 50px; display: block; pointer-events: none; -webkit-user-drag: none; }
 .篮粒 .菇号 {
-  top: 32%; min-width: 18px; height: 18px; padding: 0 4px;
-  font-size: 13px; box-shadow: 0 1px 3px rgba(58, 63, 70, 0.28);
+  top: 30%; min-width: 20px; height: 20px; padding: 0 4px;
+  font-size: 14px; box-shadow: 0 1px 3px rgba(58, 63, 70, 0.28);
 }
 
 /* ---------------------------------------------------------------- 小小出题官 */

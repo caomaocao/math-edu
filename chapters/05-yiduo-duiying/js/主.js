@@ -19,6 +19,7 @@ import { 装语言开关 } from '/shared/js/语言开关.js';
 import { 台词, 全部台词 } from './台词表.js';
 import { 站点表, 星站们, 站名 } from './站点表.js';
 import { 画实体SVG } from '/shared/js/实体图.js';
+import { 画背景SVG, 铺地图底 } from '/shared/js/布景图.js';
 import { 装后退 } from '/shared/js/后退.js';
 import { 装舞台 } from '/shared/js/舞台.js';
 import { 装转屏拦罩, 转屏台词们 } from '/shared/js/转屏.js';
@@ -154,14 +155,21 @@ function 元素(名, 属性们 = {}, 文字) {
 }
 
 function 画布景() {
-  // 远处的林line + 太阳（结构性布景走手绘 SVG——spec 世界观）
-  图纸.append(
-    元素('path', {
-      d: 'M0,240 Q150,120 320,220 Q480,110 660,210 Q840,100 1010,200 Q1120,140 1200,210 L1200,0 L0,0 Z',
-      fill: '#e6f1d5', opacity: 0.9,
-    }),
-    元素('circle', { cx: 1080, cy: 78, r: 46, fill: '#ffd76e' }),
-  );
+  // 地图底：一张全景（远处林line/天空/太阳/草地烘在里头，3.0 绘本上色，素材升级混合做法——
+  // 原来"结构性布景走手绘 SVG"的口径已改为全景背景）。prepend 到最底层；缺图退回原手画天空兜底。
+  const 背景 = 画背景SVG('第5讲地图', { 宽: 1200, 高: 680 });
+  if (背景) {
+    图纸.prepend(背景);
+    铺地图底('第5讲地图'); // 同图也铺到 body 当氛围层，letterbox 不露纯色渐变（票 12）
+  } else {
+    图纸.append(
+      元素('path', {
+        d: 'M0,240 Q150,120 320,220 Q480,110 660,210 Q840,100 1010,200 Q1120,140 1200,210 L1200,0 L0,0 Z',
+        fill: '#e6f1d5', opacity: 0.9,
+      }),
+      元素('circle', { cx: 1080, cy: 78, r: 46, fill: '#ffd76e' }),
+    );
+  }
   // 分区框线：帐篷区 / 竹林 / 草地 / 餐桌区 / 篝火圈（长相在 styles.css 的地图段）
   图纸.append(
     元素('rect', { x: 225, y: 52, width: 170, height: 176, rx: 30, class: '分区 帐篷区' }),

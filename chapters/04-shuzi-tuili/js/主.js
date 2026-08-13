@@ -16,6 +16,7 @@ import { 装语言开关 } from '/shared/js/语言开关.js';
 import { 台词, 全部台词 } from './台词表.js';
 import { 环节表, 环节名 } from './环节表.js';
 import { 画实体SVG } from '/shared/js/实体图.js';
+import { 画背景SVG, 铺地图底 } from '/shared/js/布景图.js';
 import { 装后退 } from '/shared/js/后退.js';
 import { 装舞台 } from '/shared/js/舞台.js';
 import { 装转屏拦罩, 转屏台词们 } from '/shared/js/转屏.js';
@@ -149,13 +150,21 @@ function 元素(名, 属性们 = {}, 文字) {
 }
 
 function 画布景() {
-  // 天空、太阳、云
-  图纸.append(
-    元素('path', { d: 'M0,300 Q180,150 380,290 Q520,190 700,280 Q900,130 1200,270 L1200,0 L0,0 Z', fill: '#e7f4ff' }),
-    元素('circle', { cx: 1090, cy: 90, r: 52, fill: '#ffd76e' }),
-    元素('ellipse', { cx: 250, cy: 90, rx: 84, ry: 28, fill: '#ffffff', opacity: 0.9 }),
-    元素('ellipse', { cx: 640, cy: 64, rx: 66, ry: 22, fill: '#ffffff', opacity: 0.85 }),
-  );
+  // 地图底：一张全景（天空/远山/太阳/草地烘在里头，3.0 绘本上色，素材升级混合做法）。
+  // prepend 到最底层，站点/铁路/点缀都压在它上面。缺图（背景没上线）时回 null，
+  // 退回原来手画的 SVG 天空兜底——孩子这一局不会因为缺背景而变空白（同 画实体 兜底铁律）。
+  const 背景 = 画背景SVG('第4讲地图', { 宽: 1200, 高: 720 });
+  if (背景) {
+    图纸.prepend(背景);
+    铺地图底('第4讲地图'); // 同图也铺到 body 当氛围层，letterbox 不露纯色渐变（票 12）
+  } else {
+    图纸.append(
+      元素('path', { d: 'M0,300 Q180,150 380,290 Q520,190 700,280 Q900,130 1200,270 L1200,0 L0,0 Z', fill: '#e7f4ff' }),
+      元素('circle', { cx: 1090, cy: 90, r: 52, fill: '#ffd76e' }),
+      元素('ellipse', { cx: 250, cy: 90, rx: 84, ry: 28, fill: '#ffffff', opacity: 0.9 }),
+      元素('ellipse', { cx: 640, cy: 64, rx: 66, ry: 22, fill: '#ffffff', opacity: 0.85 }),
+    );
+  }
   // 终点：车站大楼 + 格子旗（🏁 是 UI 图形——「到这儿就通关」的标记，白名单里有）。
   // 大楼直接用现成的 火车站 贴纸——第一版拿 rect+polygon 拼的橙色小房太抽象，
   // 家长看了直说丑（真机反馈），而素材库里本来就躺着一张画好的火车站。

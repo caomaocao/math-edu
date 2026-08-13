@@ -391,15 +391,17 @@ body {
 @media (hover: hover) {
   .树桩:hover { transform: scale(1.08); }
 }
-/* 木墩是画出来的一个圆盘凳：年轮顶面 + 深色墩边，动物屁股压在盘沿上，一格一个整体 */
+/* 木墩凳走实体图（树桩贴纸），动物坐在墩子上半，一格一个整体。.桩座 只管定位占框、
+   画交给贴纸；宽仍是原来那张扁圆盘的 96，高抬到 78 好让方正的树桩不被压扁。 */
 .桩座 {
-  position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%);
-  width: 96px; height: 40px; border-radius: 50%;
-  background: radial-gradient(ellipse at 50% 42%, #e8c79a 0 18%, #d8b184 18% 40%, #c99e6d 40% 66%, #b98a5c 66%);
-  box-shadow: 0 12px 0 -2px #9a6f45, 0 16px 10px rgba(53, 72, 94, 0.18);
+  position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+  width: 96px; height: 78px;
 }
+.桩座图 { display: block; width: 100%; height: 100%; }
 .桩上动物 {
-  position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+  /* bottom 是照着树桩贴纸的年轮顶面调的：墩子 78 高、年轮盘占上面约三分之一，
+     动物屁股要压在盘沿上（≈52）而不是挡在墩身前（26 是旧 CSS 扁圆盘的账，票 12）。 */
+  position: absolute; left: 50%; bottom: 52px; transform: translateX(-50%);
   font-size: 58px; z-index: 2; line-height: 1;
 }
 
@@ -496,20 +498,25 @@ body {
   `right` 给的是道里的位置而不是负值，再加上道宽是按罗盘大小算出来的，所以英文课那个
   更大的罗盘照样落在道里，不会因为自己变宽就又爬回格子上。
 */
+/* 参照小罗盘：底盘走实体图（复用 罗盘 贴纸，铺满整框），四个教学字盖在上层。
+   font/color 留着 —— 小南/小西/小东 从这儿继承字号与颜色（小北另配樱桃色）。
+   底盘那张贴纸自带针与刻度，原先 CSS 的纸盘 + ✦ 中心星都由它替下。 */
 .小罗盘 {
   position: absolute; right: var(--罗盘边距); top: var(--罗盘边距);
   width: var(--罗盘大小); height: var(--罗盘大小); z-index: 5;
   pointer-events: none;
-  background: var(--纸); border-radius: 50%; box-shadow: var(--软影);
-  font-weight: 800; color: var(--湖); font-size: 18px;
+  /* 东西南北是本讲正在教的字，必须一眼读出：加粗 + 四向白描边把字从盘面上托出来
+     （底已换成"罗盘盘面"空盘——带指针那张罗盘贴纸会把字淹了，票 12）。 */
+  font-weight: 900; color: var(--湖); font-size: 19px;
+  text-shadow:
+    -2px 0 0 #fff, 2px 0 0 #fff, 0 -2px 0 #fff, 0 2px 0 #fff,
+    -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
 }
+/* 贴纸铺满整框，落在四个方位字之下（字在 DOM 里排它后面，同层按顺序压上来）。 */
+.小罗盘图 { position: absolute; inset: 0; width: 100%; height: 100%; }
 
 /* 罗盘道那条规则不在这儿 —— 它得排在三个台子各自的 padding 简写之后才盖得住，
    所以搬到了 .海岛台 后面（本文件里三者最靠后的那个）。 */
-.小罗盘::after {
-  content: '✦'; position: absolute; left: 50%; top: 50%;
-  transform: translate(-50%, -50%); color: var(--樱桃); font-size: 22px;
-}
 .小北 { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); color: var(--樱桃); }
 .小南 { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); }
 .小西 { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); }
@@ -525,10 +532,25 @@ body {
 }
 .挂衣区 {
   grid-row: 1; grid-column: 1; display: grid; grid-template-columns: repeat(5, 1fr);
-  gap: 8px; background: #b98a5c; border-radius: 12px; padding: 8px;
+  gap: 8px; background: #b98a5c; border-radius: 12px; padding: 8px 8px 8px;
+  position: relative; /* 给晾衣杆 ::before 定位 */
+}
+/* 晾衣杆：一根横贯挂衣区顶部的浅色圆杆（票 12：原来只有个深棕 ⌒ 贴同色棕柜上，
+   「晾衣架完全看不出来」）。杆在槽的上层，衣钩挂在杆上、衣物从钩子垂下来。 */
+.挂衣区::before {
+  content: ''; position: absolute; left: 16px; right: 16px; top: 7px; height: 7px;
+  border-radius: 4px; z-index: 2;
+  background: linear-gradient(#f3ebd7, #cbba93);
+  box-shadow: 0 2px 3px rgba(60, 40, 20, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 .衣柜槽 { position: relative; background: rgba(255, 253, 246, 0.35); border-radius: 10px; }
-.钩子 { position: absolute; top: -2px; left: 50%; transform: translateX(-50%); color: #6e4f2f; font-size: 20px; }
+/* 挂钩：挂在晾衣杆上、衣物从它垂下。z-index 比杆(2)高，色调亮银灰 + 深描边，压在棕柜上看得清
+   （票 12：原来 20px 深棕 ⌒ 淹在同色棕柜里）。⌒ 是 UI 图形不是实体，不受实体emoji红线管。 */
+.钩子 {
+  position: absolute; top: -6px; left: 50%; transform: translateX(-50%); z-index: 3;
+  color: #8a6a44; font-size: 26px; line-height: 1;
+  text-shadow: 0 1px 0 rgba(255, 250, 240, 0.9);
+}
 .右列 {
   grid-row: 1 / 3; grid-column: 2; display: grid; grid-template-rows: repeat(4, 1fr);
   gap: 8px; background: #b98a5c; border-radius: 12px; padding: 8px;
@@ -784,7 +806,10 @@ body {
    50% + 171px），脚跟桥板落在同一条地线上。原来钉在台面最右（right: 6px），台面
    一宽龙和桥就隔开一百多像素，「答对一题退 18px」完全读不出来。font-size 是给
    飞走那团 💨 留的（守桥时画的是 64px 的贴纸图，见下面 .龙图）。 */
-.小龙 { position: absolute; left: calc(50% + 175px); bottom: 2px; font-size: 64px; transition: transform 0.8s ease; }
+/* 贴纸版小龙的脚落在桥板同一条地线上、并紧贴最后一块桥板（票 12：贴纸的脚在 64px 盒里
+   比旧 emoji 靠下、又离桥远了一截，看着像没站在桥上）。left 收到 +156 贴住桥右端，
+   bottom 抬到 8 让脚踩在板脚那条线上。 */
+.小龙 { position: absolute; left: calc(50% + 156px); bottom: 8px; font-size: 64px; transition: transform 0.8s ease; }
 
 /* 蔬菜格子的实体图（贴纸 PNG）版货员：冰箱里的八样东西跟原来那个 emoji 同一个
    字号盒（.货员 是 56px），换图一个像素都不位移。货架的 .货图 是另一关的同类规则，

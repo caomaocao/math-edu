@@ -23,6 +23,7 @@ export function 创建(面板, 工具) {
 
   function 一块花坛(n) {
     const 坛 = 元('div', '花坛');
+    坛.appendChild(画实体('花坛', '🪴', { 类名: '坛图' })); // 空土花坛贴纸（栽的花是上面另一层）
     const 花组 = 元('div', '花组');
     if (n == null) {
       坛.classList.add('空坛');

@@ -162,10 +162,11 @@ and `CONTEXT.md` for the vocabulary; the工程 tickets are in `.scratch/entity-a
   `web/shared/assets/实体图/<素材名>.webp`. Raw 2048px outputs in `.scratch/entity-art/` are
   gitignored PNG (intermediate stays lossless; only the shipped 256px asset is WebP). Animals drift the most —出 2–3 张校样比对再放量 (the squirrel came back as a shaded
   illustration on the first pass; the prompt now pins 严格平涂).
-  One deliberate exception to the square: **篮子** (第4讲蘑菇站) ships 680×285 via
-  `tools/裁篮子.py` — the model insists on a tall handle and the station needs a wide shallow
-  basket a row of mushrooms can sit in; that script's header carries the why, and the host CSS
-  sizes it by its real aspect ratio instead of 画实体's square 尺寸 parameter.
+  One deliberate exception to the square: **篮子** (第4讲蘑菇站) ships ~1024×623 via
+  `tools/裁篮子.py` — the model insists on a tall handle, so the script crops it off and keeps the
+  basket's **敞口** (rim + cavity + front wall) so the picked mushrooms nestle *inside* the opening;
+  that script's header carries the why (and why the earlier front-wall-only crop read as "遮挡"), and
+  the host CSS sizes it by its real aspect ratio instead of 画实体's square 尺寸 parameter.
 - **Rendering has exactly one gate**: `画实体(名, 兜底emoji, {类名})` for HTML, `画实体SVG(…)` for
   the SVG level map — both decide via the same `画法()`. Chapter data keeps its emoji field as the
   runtime fallback (a missing image never breaks the child's session), but that fallback must go

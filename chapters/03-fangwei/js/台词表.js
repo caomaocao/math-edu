@@ -216,11 +216,12 @@ const 中台词 = {
   },
 
   开车: {
-    开场: '滴滴！我是小车车，你是我的小司机！大声告诉我往哪儿开：往北、往南、往西、还是往东！',
+    开场: '滴滴！我是小车车，你是我的小司机！你告诉我往哪走、走几格，比如「往东走两格」，我就开！',
     /** 一直没出声（多半在发呆），提醒他还有按钮可以点 */
-    也能点按钮: '也可以点旁边的方向按钮哦！',
-    没听懂: '我没听懂，说「往东走」这样的话，或者点方向按钮！',
-    到路口: '到路口啦，接下来往哪边开？',
+    也能点按钮: '也可以点旁边的方向按钮哦，点一下走一格！',
+    没听懂: '我没听懂，说「往东走两格」这样的话，或者点方向按钮！',
+    /** 方向听见了、走几格没认出来（用户拍板：格数由孩子报，认不准就当没说清、请他再说） */
+    没听清数: '方向听见啦，可走几格没听清！再说一遍，比如「往东走两格」！',
     收尾: '三趟客人全都送到啦！你是全镇最棒的小司机！点小房子回地图吧！',
   },
 
@@ -382,10 +383,10 @@ const 英台词 = {
   },
 
   开车: {
-    开场: 'Beep beep! I am the little car, and you are my driver! Tell me out loud where to go: north, south, west, or east!',
-    也能点按钮: 'You can also click the direction buttons beside me!',
-    没听懂: 'I did not catch that. Say something like go east, or click a direction button!',
-    到路口: 'We are at a crossing. Which way do we go now?',
+    开场: 'Beep beep! I am the little car, and you are my driver! Tell me which way and how many squares — like go east two squares — and I will drive!',
+    也能点按钮: 'You can also click the direction buttons beside me — one click, one square!',
+    没听懂: 'I did not catch that. Say something like go east two squares, or click a direction button!',
+    没听清数: 'I heard the direction, but not how many squares! Say it again, like go east two squares!',
     收尾: 'All three passengers are home! You are the best driver in the whole town! Click the little house to go back to the map!',
   },
 
@@ -514,16 +515,18 @@ const 中模板 = {
   },
 
   开车: {
-    /** 昵 = 念给孩子听的叫法（🐱 那一站念「小猫」，不念「猫猫家」） */
-    送客: (名, 昵) => `这一趟我们送客人去${名}！找到${昵}的格子，指挥我过去吧！`,
-    /** 分段步数提示：从车现在的位置到目的地，一段一段念（同藏宝线索的口径，第一段不带「再」） */
-    步数提示: ({ 步们 }) => {
-      const 步话 = 步们.map(([方, 数], i) => `${i === 0 ? '' : '再'}往${方}走${数}格`).join('，');
-      return `${步话}，就到啦！`;
-    },
-    /** 走岔了 / 想再听一遍：把重新算过的步数提示裹一层 */
-    重念: (话) => `再听一遍：${话}`,
-    没有路: (方) => `往${方}没有路呀！看看路往哪边弯！`,
+    /** 昵 = 念给孩子听的叫法（🐱 那一站念「小猫」，不念「猫猫家」）。
+     *  只报送谁去哪，**不报**怎么走 —— 往哪、走几格由孩子自己看地图定、自己说（用户拍板）。 */
+    送客: (名, 昵) => `这一趟我们送客人去${名}！${昵}在哪一格呢？你自己看，往哪走、走几格由你说！`,
+    /** 起步轻提示：只报**这一格能往哪几个方向起步**（是选项、不是答案），孩子自己挑方向、数格子。 */
+    起步: (方向们) => `从这儿能往${方向们.join('、往')}开。你说往哪走、走几格，我就开！`,
+    没有路: (方) => `往${方}没有路呀！那边开不过去，看看路往哪边拐！`,
+    /** 报的格数比路长，开到头就停（不硬冲、给个交代） */
+    到头: (方) => `往${方}开到头啦！接着说往哪走、走几格！`,
+    /** 走岔多了才给的 escalate 提醒：先只点方向（还留着「走几格」让他自己数） */
+    提醒方向: (方) => `偷偷告诉你——试试往${方}边开！`,
+    /** 再不行才连格数一起报（最后托底，别把孩子卡死在这一步） */
+    提醒方向数: (方, 数) => `往${方}开${数}格，试试看！`,
     到站: (名) => `叮咚！${名}到啦！小司机真厉害！`,
   },
 
@@ -629,15 +632,12 @@ const 英模板 = {
   },
 
   开车: {
-    送客: (名, 昵) => `On this trip we take our guest to the ${名}! Find the ${昵} square and steer me over there!`,
-    步数提示: ({ 步们 }) => {
-      const 步话 = 步们
-        .map(([方, 数], i) => `${i === 0 ? 'Go' : 'then go'} ${英说(方)} ${格数(数)}`)
-        .join(', ');
-      return `${步话}, and you are there!`;
-    },
-    重念: (话) => `Listen again: ${话}`,
-    没有路: (方) => `There is no road going ${英说(方)}! Look at which way the road bends!`,
+    送客: (名, 昵) => `On this trip we take our guest to the ${名}! Where is the ${昵}? Look for yourself — you tell me which way and how many squares!`,
+    起步: (方向们) => `From here you can go ${方向们.map(英说).join(', ')}. Tell me which way and how many squares, and I will drive!`,
+    没有路: (方) => `There is no road going ${英说(方)}! You cannot get through there — look at which way the road bends!`,
+    到头: (方) => `That is as far as the road goes ${英说(方)}! Tell me which way and how many squares next!`,
+    提醒方向: (方) => `Here is a little hint — try going ${英说(方)}!`,
+    提醒方向数: (方, 数) => `Try going ${英说(方)} ${格数(数)}!`,
     到站: (名) => `Ding dong! Here is the ${名}! What a great little driver!`,
   },
 

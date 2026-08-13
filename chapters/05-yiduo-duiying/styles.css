@@ -281,41 +281,10 @@ body {
   box-shadow: var(--软影); z-index: 0;
 }
 .开营树 { position: relative; z-index: 1; width: 116px; height: 116px; font-size: 96px; line-height: 116px; text-align: center; }
-.开营帐 { position: relative; z-index: 1; width: 190px; height: 140px; }
-.开营帐::before {
-  content: ''; position: absolute; inset: 0;
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
-}
-.帐甲::before { background: linear-gradient(var(--帐篷米), var(--米深)); }
-.帐乙::before { background: linear-gradient(#4d8a5e, var(--森林绿)); }
-/* 帐篷门：一条深色小三角 */
-.开营帐::after {
-  content: ''; position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
-  width: 46px; height: 58px; clip-path: polygon(50% 0, 100% 100%, 0 100%);
-}
-.帐甲::after { background: var(--火深); }
-.帐乙::after { background: var(--帐篷米); }
-
-.篝火堆 { position: relative; z-index: 2; width: 150px; height: 150px; }
-.柴 {
-  position: absolute; bottom: 12px; left: 50%; width: 108px; height: 18px;
-  border-radius: 9px; background: linear-gradient(#8a6742, #6b4d2e);
-}
-.柴左 { transform: translateX(-50%) rotate(18deg); }
-.柴右 { transform: translateX(-50%) rotate(-18deg); }
-.火苗 {
-  position: absolute; bottom: 26px; transform-origin: 50% 100%;
-  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
-  background: radial-gradient(circle at 50% 72%, #ffd76e, var(--篝火橙) 62%, var(--火深));
-  animation: 火摇 0.9s ease-in-out infinite alternate;
-}
-.苗大 { left: 50%; margin-left: -30px; width: 60px; height: 92px; }
-.苗左 { left: 50%; margin-left: -56px; width: 36px; height: 58px; animation-delay: 0.25s; }
-.苗右 { left: 50%; margin-left: 20px; width: 36px; height: 58px; animation-delay: 0.5s; }
-@keyframes 火摇 {
-  from { transform: scaleY(1) rotate(-3deg); }
-  to { transform: scaleY(1.14) rotate(3deg); }
-}
+/* 帐篷、篝火换贴纸（素材升级10）：容器只管定位、居中、底对齐，图由 画实体 的 尺寸 摆。
+   火苗窜动的 火摇 动效随 CSS 形状一并去掉，微动画留给票 11 补。 */
+.开营帐 { position: relative; z-index: 1; width: 150px; height: 150px; display: flex; align-items: flex-end; justify-content: center; }
+.篝火堆 { position: relative; z-index: 2; width: 150px; height: 150px; display: flex; align-items: flex-end; justify-content: center; }
 
 /* ====== 以下按站分段，各站只在自己的段里写（并行热点，别都堆到文件尾）====== */
 
@@ -488,6 +457,22 @@ body {
 .锅肚 { position: relative; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; max-width: 640px; }
 .锅里份 { width: 56px; height: 56px; pointer-events: none; -webkit-user-drag: none; }
 
+/* 贴纸锅（素材升级10，仅 .有锅图 那口＝分饭站）：空锅贴图垫底、锅口上码着还没发的份。
+   蛋糕派对的大白盘、Boss 发饭关的棕锅不带这个类，仍走上面/派对段的 CSS 皮，一点不动。 */
+.饭锅.有锅图 {
+  min-width: 0; max-width: none; min-height: 0;
+  width: 220px; height: 200px; padding: 44px 0 0; border-radius: 0;
+  background: none; box-shadow: none;
+  display: flex; align-items: flex-start; justify-content: center;
+}
+.饭锅.有锅图::before { display: none; }
+.锅图 {
+  position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+  width: 220px; height: 220px; z-index: 0; pointer-events: none; -webkit-user-drag: none;
+}
+.饭锅.有锅图 .锅肚 { position: relative; z-index: 1; max-width: 150px; }
+.饭锅.有锅图 .锅里份 { width: 44px; height: 44px; }
+
 /* 排队的小朋友：真按钮真放大（邻居是另一个答案）。 */
 .排队区 { display: flex; justify-content: center; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
 .食客 {
@@ -635,21 +620,10 @@ body {
 .派对彩旗 span:nth-child(4n+3) { background: #ffd76e; }
 .派对彩旗 span:nth-child(4n) { background: #8fb8de; }
 
-.派对气球 {
-  position: absolute; top: 52px; width: 46px; height: 58px;
-  border-radius: 50% 50% 50% 50% / 56% 56% 44% 44%;
-  pointer-events: none; animation: 气球飘 3.2s ease-in-out infinite alternate;
-}
-.派对气球::after {
-  content: ''; position: absolute; left: 50%; top: 100%;
-  width: 2px; height: 40px; background: rgba(53, 68, 58, 0.35);
-}
-.气球左 { left: 26px; background: radial-gradient(circle at 32% 28%, #ffb4a0, #e8763a); }
-.气球右 { right: 26px; background: radial-gradient(circle at 32% 28%, #c4e6b2, #5f9a6e); animation-delay: 1.1s; }
-@keyframes 气球飘 {
-  from { transform: translateY(0) rotate(-3deg); }
-  to { transform: translateY(-12px) rotate(3deg); }
-}
+/* 气球换贴纸（素材升级10）：容器只定位，图由 画实体 的 尺寸 摆；飘动动效随 CSS 形状去掉，留给票 11。 */
+.派对气球 { position: absolute; top: 52px; width: 64px; height: 64px; pointer-events: none; }
+.气球左 { left: 26px; }
+.气球右 { right: 26px; }
 
 /* ================================================================ 站：Boss
    （票 08 · 篝火晚会：五族混合连闯 + 青蛙合唱团彩蛋 + 全章大庆祝。）
@@ -720,16 +694,10 @@ body {
 .蛙计:empty { display: none; }
 .蛙计.跳 { animation: 对了弹 0.45s ease; }
 
-/* 篝火冲天：收官那一下火苗窜上半空（纯布景，落幕接大庆祝——烟花/奖杯走主.js 现有仪式）。 */
+/* 篝火冲天：收官那口篝火（素材升级10 换贴纸；窜天的「冲天」动效随 CSS 形状去掉，留给票 11）。
+   容器只定位、发圈微光衬大庆祝，图由 画实体 的 尺寸 摆。 */
 .篝火冲天 {
   position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
-  z-index: 21; width: 190px; height: 60px; pointer-events: none;
-  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
-  background: radial-gradient(circle at 50% 82%, #ffe08a, var(--篝火橙) 55%, var(--火深));
+  z-index: 21; pointer-events: none;
   filter: drop-shadow(0 0 30px var(--篝火橙));
-  animation: 冲天 1.7s ease forwards;
-}
-@keyframes 冲天 {
-  0% { height: 60px; opacity: 0.5; }
-  100% { height: 540px; opacity: 1; }
 }
